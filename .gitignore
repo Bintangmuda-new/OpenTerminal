@@ -11,3 +11,12 @@ out/
 # Database
 data/*.db*
 data/.api-key
+
+# Pocket / lokal
+data/.pocket-ssid*
+data/*.sqlite3*
+data/*.csv
+data/*.bak
+__pycache__/
+.venv/
+_scratch/
