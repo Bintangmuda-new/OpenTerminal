@@ -15,7 +15,6 @@ import CryptoWidget from "./widgets/CryptoWidget";
 import MacroWidget from "./widgets/MacroWidget";
 import OptionsWidget from "./widgets/OptionsWidget";
 import PortfolioWidget from "./widgets/PortfolioWidget";
-import AiWidget from "./widgets/AiWidget";
 import CalendarWidget from "./widgets/CalendarWidget";
 import InsiderWidget from "./widgets/InsiderWidget";
 import TvWidget from "./widgets/TvWidget";
@@ -35,7 +34,6 @@ function WidgetBody({ widget }: { widget: WidgetInstance }) {
     case "macro": return <MacroWidget />;
     case "options": return <OptionsWidget widget={widget} />;
     case "portfolio": return <PortfolioWidget />;
-    case "ai": return <AiWidget />;
     case "calendar": return <CalendarWidget />;
     case "insider": return <InsiderWidget widget={widget} />;
     case "tv": return <TvWidget />;
@@ -92,7 +90,7 @@ function SymbolTag({ widget, activeSymbol }: { widget: WidgetInstance; activeSym
 const TITLES: Record<string, string> = {
   quote: "Quote", chart: "Chart", watchlist: "Watchlist", news: "News",
   heatmap: "Heatmap", screener: "Screener", crypto: "Crypto",
-  macro: "Macro / Indexes", options: "Option Chain", portfolio: "Portfolio", ai: "AI Assistant",
+  macro: "Macro / Indexes", options: "Option Chain", portfolio: "Portfolio",
   calendar: "Calendar", insider: "Insider Transactions", tv: "Live TV", recap: "Market Recap",
 };
 
@@ -113,6 +111,9 @@ export default function Workspace() {
       cols={12}
       rowHeight={30}
       margin={[4, 4]}
+      compactType="vertical"
+      preventCollision={false}
+      isBounded
       draggableHandle=".panel-title"
       onLayoutChange={(l) => setLayout(l.map(({ i, x, y, w, h }) => ({ i, x, y, w, h })))}
     >

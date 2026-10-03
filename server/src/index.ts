@@ -2,10 +2,12 @@ import express from "express";
 import cors from "cors";
 import { marketRouter } from "./routes/market.js";
 import { portfolioRouter } from "./routes/portfolio.js";
-import { aiRouter } from "./routes/ai.js";
+import { researchRouter } from "./routes/research.js";
+
 import { allStats } from "./providers/registry.js";
 import { requireApiKey } from "./auth.js";
-import { rateLimit } from "./rateLimit.js";
+
+import { pocketRouter } from "./pocket.js";
 
 const app = express();
 
@@ -30,21 +32,16 @@ app.use(cors({ origin: webOrigin }));
 app.use(express.json());
 
 app.use("/api", marketRouter);
+app.use("/api/pocket", requireApiKey, pocketRouter);
+app.use("/api/research", requireApiKey, researchRouter);
 // Portfolio data and the paid AI endpoint require a shared secret; see auth.ts.
 app.use("/api/portfolios", requireApiKey, portfolioRouter);
-app.use(
-  "/api/ai",
-  requireApiKey,
-  rateLimit({ windowMs: 60_000, max: 10 }),
-  aiRouter
-);
 
 app.get("/api/status", (_req, res) => {
   res.json({
     ok: true,
     time: new Date().toISOString(),
     providers: allStats(),
-    ai: Boolean(process.env.ANTHROPIC_API_KEY),
   });
 });
 

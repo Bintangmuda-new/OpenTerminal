@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
@@ -12,15 +11,14 @@ import {
   type IChartApi,
   type UTCTimestamp,
 } from "lightweight-charts";
-import { apiGet, fmt, fmtBig, type Candle } from "../../lib/api";
+import { fmt, fmtBig, type Candle } from "../../lib/api";
 import { sma, ema, vwap, rsi, macd, bollinger, type Point } from "../../lib/indicators";
+import { usePocketSnapshot } from "../../lib/pocket";
 import { useWidgetSymbol, type WidgetInstance } from "../../store/terminal";
 
-const RANGES = ["1D", "5D", "1M", "6M", "YTD", "1Y", "5Y", "MAX"] as const;
 const CHART_TYPES = ["candles", "bars", "line", "area"] as const;
 const INDICATORS = ["SMA20", "SMA50", "SMA200", "EMA20", "VWAP", "BOLL", "RSI", "MACD"] as const;
 
-type Range = (typeof RANGES)[number];
 type ChartType = (typeof CHART_TYPES)[number];
 type Indicator = (typeof INDICATORS)[number];
 
@@ -34,18 +32,15 @@ const INDICATOR_COLOR: Record<string, string> = {
 
 export default function ChartWidget({ widget }: { widget: WidgetInstance }) {
   const symbol = useWidgetSymbol(widget);
-  const [range, setRange] = useState<Range>("6M");
   const [chartType, setChartType] = useState<ChartType>("candles");
   const [active, setActive] = useState<Set<Indicator>>(new Set(["SMA20"]));
   const [legend, setLegend] = useState<Candle | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
-  const { data: candles, error } = useQuery({
-    queryKey: ["history", symbol, range],
-    queryFn: () => apiGet<Candle[]>(`/api/history/${symbol}?range=${range}`),
-    refetchInterval: range === "1D" ? 8_000 : 60_000,
-  });
+  const { data: snapshot, error } = usePocketSnapshot(symbol);
+  const candles = snapshot?.candles[symbol] ?? [];
+  const symbolLive = snapshot?.liveSymbols.includes(symbol) === true;
 
   // Fast time -> candle lookup for the crosshair legend, independent of chart type.
   const byTime = useMemo(() => {
@@ -134,7 +129,7 @@ export default function ChartWidget({ widget }: { widget: WidgetInstance }) {
       layout: { background: { color: "#0a0a0a" }, textColor: "#808080", fontSize: 10, attributionLogo: false },
       grid: { vertLines: { color: "#1a1a1a" }, horzLines: { color: "#1a1a1a" } },
       crosshair: { mode: 0 },
-      timeScale: { borderColor: "#262626", timeVisible: range === "1D" || range === "5D" },
+      timeScale: { borderColor: "#262626", timeVisible: true },
       rightPriceScale: { borderColor: "#262626" },
       autoSize: true,
       // Mouse-wheel is left free for page scrolling — zoom via drag, pinch, or the range buttons instead.
@@ -222,7 +217,7 @@ export default function ChartWidget({ widget }: { widget: WidgetInstance }) {
       chart.remove();
       chartRef.current = null;
     };
-  }, [candles, chartType, indicatorData, range, byTime]);
+  }, [candles, chartType, indicatorData, byTime]);
 
   const toggleIndicator = (ind: Indicator) =>
     setActive((prev) => {
@@ -235,11 +230,7 @@ export default function ChartWidget({ widget }: { widget: WidgetInstance }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex gap-1 p-1 flex-wrap shrink-0">
-        {RANGES.map((r) => (
-          <button key={r} className={`term-btn ${range === r ? "active" : ""}`} onClick={() => setRange(r)}>
-            {r}
-          </button>
-        ))}
+        <span className={`term-btn active ${symbolLive ? "up" : "down"}`}>DEMO M1 · {snapshot ? (symbolLive ? "CONNECTED" : "WAITING") : "UPDATING"}</span>
         <span className="w-2" />
         {CHART_TYPES.map((t) => (
           <button key={t} className={`term-btn ${chartType === t ? "active" : ""}`} onClick={() => setChartType(t)}>

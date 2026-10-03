@@ -126,21 +126,35 @@ npm run dev
 
 That's it — no `.env` file required to get a fully working terminal.
 
-### Optional: AI assistant
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-npm run dev
-```
-
-Without a key, everything else still works — the AI widget just shows a friendly "unavailable" message instead of failing.
-
 ### Security defaults
 
 - The API binds to `127.0.0.1` and only accepts browser requests from `http://localhost:3000` by default — nothing else on your network can reach it out of the box.
-- The portfolio and AI endpoints require a shared secret. If you don't set `API_KEY` yourself, the API generates one on first run and saves it to `data/.api-key`; the bundled web app reads that file automatically, so local dev stays zero-config.
+- The portfolio endpoint requires a shared secret. If you don't set `API_KEY` yourself, the API generates one on first run and saves it to `data/.api-key`; the bundled web app reads that file automatically, so local dev stays zero-config.
 - To expose this beyond your own machine, set `API_HOST=0.0.0.0`, `API_KEY=<a-strong-secret>` (on both the api and web processes), and `WEB_ORIGIN=<your actual origin>` explicitly. Don't do this without also keeping dependencies patched — see [Known limitations](#known-limitations) below.
-- The `/api/ai` rate limit (10 req/min) keys on `req.ip`. Calls made through the bundled web proxy all arrive from that proxy's own address, so by default every caller sharing it shares one bucket. If you're serving more than one real user through it, set `TRUST_PROXY=1` on the api process **only if** you also run your own reverse proxy in front of the web service that sets `X-Forwarded-For` from the real client and doesn't let visitors set it themselves — otherwise a caller can forge that header to dodge the limit.
+
+### OpenTerminal DEMO mode
+
+The Windows build at `E:\JANGAN DI HAPUS\OpenTerminal` includes a read-only Pocket Option DEMO feed:
+
+- Realtime broker ticks and M1 OHLCV candles refresh every second.
+- Chart, quote, watchlist, and connection status use broker data; missing data stays visibly unavailable.
+- Status labels are `CONNECTED`, `UPDATING`, or `DISCONNECTED`; updating text blinks unless reduced motion is enabled.
+- Only DEMO sessions are accepted. BUY/SELL, deposit, withdrawal, and LIVE-account actions do not exist.
+- The broker SSID stays in the local ignored credential file. It is never returned by the API or rendered in the UI.
+- Desktop executable: `desktop\dist\OpenTerminal.exe`; web dashboard: `Jalankan-Web.cmd`; API manual: `Jalankan-API.cmd`.
+- The desktop app starts the local API through hidden `node.exe` only when needed. It does not open a `cmd.exe` window.
+- Market Explorer uses one native scrollbar at the right edge; Price and connection state remain right-aligned.
+- `Auto Login` opens an isolated browser for manual Pocket Option login, captures the broker auth frame, rejects LIVE sessions, reconnects the DEMO feed, then removes the temporary session file.
+
+Validation commands:
+
+```powershell
+npm run build -w server
+npm run build -w web
+npm test
+python -m py_compile server/pocket_feed.py
+dotnet publish desktop\OpenTerminal.Desktop.csproj -c Release -r win-x64 --self-contained false -o desktop\dist
+```
 
 <br/>
 
@@ -169,20 +183,37 @@ Portfolio data persists in the `terminal-data` volume (SQLite, WAL mode). Ports 
 ## 📁 Project structure
 
 ```
+├── desktop/                 # Native WPF Windows shell
+│   ├── MainWindow.xaml      # Desktop layout, B.O.S chart, Market Explorer
+│   ├── MainWindow.xaml.cs   # Local API lifecycle, M1 chart, confirmed B.O.S/CHoCH
+│   └── dist/                # OpenTerminal.exe distribution build
 ├── server/                  # Express + TypeScript API
 │   └── src/
 │       ├── providers/       # nasdaq, tradingview, yahoo, stooq, fred, econcalendar, coingecko, binance, news
 │       ├── routes/          # market, portfolio, ai
 │       ├── cache.ts         # TTL cache with stale-while-revalidate fallback
-│       └── db.ts            # SQLite (better-sqlite3, WAL)
+│       └── db.ts            # SQLite app state (better-sqlite3, WAL)
+│   ├── pocket_feed.py       # sole Pocket Option DEMO WebSocket client; live ticks/M1 candles
+│   └── pocket_client/       # broker transport and validated models
+├── data/                     # Local secrets and persisted data; never commit or share
+│   └── otc_research.sqlite3 # Local tick and M1-candle research journal (WAL)
+├── docs/                     # Architecture and broker connection documentation
+├── STATUS.md                 # Verified project status
 └── web/                      # Next.js 15 + React 19 + Tailwind 4
     ├── components/           # TopBar, Sidebar, Workspace, CommandPalette
     ├── components/widgets/   # Chart, Quote, Watchlist, News, Screener, Heatmap, Crypto, Options, Macro, Portfolio, Calendar, AI
-    ├── lib/                  # API client, technical indicators
+    ├── lib/                  # API client, broker snapshot, technical indicators
     └── store/                # Zustand store (workspace layout, persisted)
 ```
 
 Run tests with `npm test` (Vitest, no network calls). CI runs on every push — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+## B.O.S chart
+
+- Shows `BOS` / `CHoCH` only after a candle closes beyond a confirmed swing level.
+- The active candle never receives a structure arrow; labels do not repaint.
+- One confirmed break produces one arrow. Support/resistance bounce arrows are not rendered.
+- Analysis is DEMO data-only; no order entry, account action, or guaranteed outcome is provided.
 
 <br/>
 

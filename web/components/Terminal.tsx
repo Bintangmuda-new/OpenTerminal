@@ -28,7 +28,6 @@ export default function Terminal() {
           "6": () => addWidget("crypto"),
           "7": () => addWidget("options"),
           "8": () => addWidget("portfolio"),
-          "9": () => addWidget("ai"),
         };
         const fn = map[e.key];
         if (fn) {

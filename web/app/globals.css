@@ -75,6 +75,17 @@ body {
   color: var(--text-dim);
 }
 
+.status-blink {
+  animation: status-blink-anim 900ms steps(2, end) infinite;
+}
+@keyframes status-blink-anim {
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-blink { animation: none; }
+}
+
 table.data-table {
   width: 100%;
   border-collapse: collapse;

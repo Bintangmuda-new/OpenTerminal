@@ -1,0 +1,5 @@
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.exe
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.dll
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.deps.json
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.runtimeconfig.json
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.pdb

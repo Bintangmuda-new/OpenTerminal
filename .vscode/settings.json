@@ -1,0 +1,6 @@
+{
+  "9router-for-github-copilot.verboseLogging": true,
+  "9router-for-github-copilot.enableInlineCompletion": true,
+  "chat.useClaudeHooks": true,
+  "editor.formatOnSave": true
+}

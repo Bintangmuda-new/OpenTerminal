@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiGet, fmt, fmtBig, pctClass, type Quote } from "../../lib/api";
+import { usePocketSnapshot } from "../../lib/pocket";
 import { useWidgetSymbol, type WidgetInstance } from "../../store/terminal";
 import Flash from "../Flash";
 
@@ -9,6 +10,7 @@ type ShortVolume = { date: string; shortVolume: number; shortExemptVolume: numbe
 
 export default function QuoteWidget({ widget }: { widget: WidgetInstance }) {
   const symbol = useWidgetSymbol(widget);
+  const { data: pocket, error: pocketError } = usePocketSnapshot(symbol);
   const { data, error } = useQuery({
     queryKey: ["quote", symbol],
     queryFn: async () => (await apiGet<Quote[]>(`/api/quotes?symbols=${symbol}`))[0],
@@ -21,6 +23,16 @@ export default function QuoteWidget({ widget }: { widget: WidgetInstance }) {
     staleTime: 3_600_000,
   });
 
+  const tick = pocket?.ticks[symbol];
+  if (pocketError && error) return <div className="p-2 down">Broker unavailable: {(pocketError as Error).message}</div>;
+  if (pocket && !tick && (symbol.startsWith("#") || symbol.endsWith("_otc"))) return <div className="p-2 amber">Waiting for broker tick: {symbol}</div>;
+  if (tick) {
+    return <div className="p-2">
+      <div className="flex items-baseline gap-3 mb-1"><Flash value={tick.price} className="text-xl font-bold">{fmt(tick.price)}</Flash><span className="up text-sm">CONNECTED</span></div>
+      <div className="dim text-[11px] mb-2">{symbol} · Pocket Option DEMO · realtime</div>
+      <div className="grid grid-cols-2 gap-x-4"><div className="flex justify-between border-b border-[#161616] py-0.5"><span className="dim">Last</span><span>{fmt(tick.price)}</span></div><div className="flex justify-between border-b border-[#161616] py-0.5"><span className="dim">Updated</span><span>{new Date(tick.time * 1000).toLocaleTimeString()}</span></div></div>
+    </div>;
+  }
   if (error) return <div className="p-2 down">Error: {(error as Error).message}</div>;
   if (!data) return <div className="p-2 dim">Loading {symbol}…</div>;
 

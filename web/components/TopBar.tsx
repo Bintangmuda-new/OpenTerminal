@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
 import { useTerminal } from "../store/terminal";
+import { usePocketSnapshot } from "../lib/pocket";
 
 type Status = {
   ok: boolean;
   providers: Array<{ name: string; ok: number; failed: number; lastLatencyMs: number | null }>;
-  ai: boolean;
 };
 
 function Clock({ tz, label }: { tz: string; label: string }) {
@@ -40,6 +40,7 @@ function marketStateNY(): { label: string; open: boolean } {
 export default function TopBar() {
   const setCommandOpen = useTerminal((s) => s.setCommandOpen);
   const activeSymbol = useTerminal((s) => s.activeSymbol);
+  const { data: pocket, error: pocketError, isFetching: pocketFetching } = usePocketSnapshot(activeSymbol);
   const { data: status } = useQuery({
     queryKey: ["status"],
     queryFn: () => apiGet<Status>("/api/status"),
@@ -48,6 +49,9 @@ export default function TopBar() {
 
   const market = marketStateNY();
   const healthy = status?.providers.filter((p) => p.ok > 0) ?? [];
+  const brokerConnected = pocket?.status === "live" && !pocketError;
+  const brokerUpdating = !brokerConnected && pocketFetching && !pocketError;
+  const brokerLabel = brokerConnected ? "CONNECTED" : brokerUpdating ? "UPDATING" : "DISCONNECTED";
 
   return (
     <header className="flex items-center gap-4 px-3 h-8 bg-[var(--panel-2)] border-b border-[var(--border)] text-[11px] shrink-0">
@@ -63,13 +67,15 @@ export default function TopBar() {
       >
         {activeSymbol} — search symbol… <span className="float-right">⌘K</span>
       </button>
-      <span className="dim ml-auto">
+      <span className={`ml-auto ${brokerConnected ? "up" : brokerUpdating ? "amber status-blink" : "down"}`}>
+        broker: {brokerLabel}
+      </span>
+      <span className="dim">
         feeds:{" "}
         {healthy.length > 0
           ? healthy.map((p) => `${p.name} ${p.lastLatencyMs ?? "—"}ms`).join(" · ")
           : "connecting…"}
       </span>
-      <span className={status?.ai ? "up" : "dim"}>AI {status?.ai ? "●" : "○"}</span>
     </header>
   );
 }

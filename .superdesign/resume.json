@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "targets": {
+    "/": {
+      "projectId": "6ab0a8ab-8439-4360-92e4-abca4582c6a8",
+      "target": "/",
+      "sourcePath": "web/app/page.tsx",
+      "contextFiles": [
+        "web/components/Terminal.tsx",
+        "web/components/Workspace.tsx",
+        "web/components/widgets/PocketChart.tsx:1:320",
+        "web/components/widgets/PocketMonitorWidget.tsx",
+        "web/components/TopBar.tsx",
+        "web/components/Sidebar.tsx",
+        "web/lib/indicators.ts",
+        "web/lib/refresh.ts",
+        "web/store/terminal.ts",
+        "web/app/globals.css"
+      ],
+      "baselineDraftId": "bc1e731b-dd80-4740-bed0-776ab6c03921",
+      "activeDraftId": "bc1e731b-dd80-4740-bed0-776ab6c03921",
+      "branchDescription": "Pocket Option DEMO realtime market-analysis workspace; main chart, broker market navigator, functional M1 signal confluence and data-backed supporting widgets; no order execution.",
+      "updatedAt": "2026-09-18T21:25:52.2275988Z"
+    }
+  }
+}

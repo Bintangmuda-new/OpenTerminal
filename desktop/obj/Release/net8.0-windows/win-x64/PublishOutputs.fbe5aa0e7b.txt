@@ -1,0 +1,10 @@
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.exe
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.dll
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.deps.json
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.runtimeconfig.json
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\OpenTerminal.pdb
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\Microsoft.Data.Sqlite.dll
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\SQLitePCLRaw.batteries_v2.dll
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\SQLitePCLRaw.core.dll
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\SQLitePCLRaw.provider.e_sqlite3.dll
+E:\JANGAN DI HAPUS\OpenTerminal\desktop\dist\e_sqlite3.dll

@@ -3,6 +3,11 @@ node_modules/
 dist/
 out/
 *.log
+*.err
+*.out
+*.bak
+*.bak2
+*.tsbuildinfo
 .env
 .env.local
 .DS_Store
@@ -11,12 +16,15 @@ out/
 # Database
 data/*.db*
 data/.api-key
-
-# Pocket / lokal
-data/.pocket-ssid*
+data/.pocket-ssid
+data/.pocket-browser-*
 data/*.sqlite3*
-data/*.csv
-data/*.bak
+audit*.json
+
+# Scratch / generated
+_tmp_*.py
+*.tmp
 __pycache__/
-.venv/
+pocket-live.json
+pocket-snapshot-sample.json
 _scratch/

@@ -14,7 +14,6 @@ export type WidgetType =
   | "macro"
   | "options"
   | "portfolio"
-  | "ai"
   | "calendar"
   | "insider"
   | "tv"
@@ -74,7 +73,6 @@ const SIZE_BY_TYPE: Record<WidgetType, { w: number; h: number }> = {
   macro: { w: 5, h: 7 },
   options: { w: 12, h: 9 },
   portfolio: { w: 7, h: 8 },
-  ai: { w: 5, h: 10 },
   calendar: { w: 12, h: 11 },
   insider: { w: 7, h: 9 },
   tv: { w: 6, h: 11 },
@@ -84,12 +82,12 @@ const SIZE_BY_TYPE: Record<WidgetType, { w: number; h: number }> = {
 export const useTerminal = create<TerminalState>()(
   persist(
     (set) => ({
-      activeSymbol: "AAPL",
+  activeSymbol: "#AAPL_otc",
       widgets: DEFAULT_WIDGETS,
       layout: DEFAULT_LAYOUT,
-      watchlist: ["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "GOOGL", "META", "SPY"],
+  watchlist: ["#AAPL_otc", "#MSFT_otc", "#TSLA_otc", "#AMZN_otc", "#GOOGL_otc"],
       commandOpen: false,
-      setActiveSymbol: (s) => set({ activeSymbol: s.toUpperCase() }),
+      setActiveSymbol: (s) => set({ activeSymbol: s.trim().toUpperCase() }),
       setCommandOpen: (open) => set({ commandOpen: open }),
       addWidget: (type, symbol) =>
         set((st) => {
