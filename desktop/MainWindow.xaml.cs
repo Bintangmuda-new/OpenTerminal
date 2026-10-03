@@ -28,12 +28,13 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer alertTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly ObservableCollection<MarketRow> markets = [];
     private readonly List<MarketRow> allMarkets = [];
+    private readonly HashSet<string> favoriteSymbols = new(StringComparer.OrdinalIgnoreCase);
     private List<Candle> sourceCandles = [];
     private List<Candle> chartCandles = [];
     private string apiKey = "";
     private string selectedSymbol = "#AAPL_otc";
     private string groupFilter = "ALL";
-    private int visibleBars = 180, firstVisible;
+    private int visibleBars = 24, firstVisible;
     private bool panning;
     private System.Windows.Point panStart;
     private System.Windows.Point hoverPoint;
@@ -67,7 +68,7 @@ public partial class MainWindow : Window
     private readonly SlShStore slShStore = new(System.IO.Path.Combine(Root, "data"));
 
     /// <summary>Strategi yang sedang menyala. Dipakai untuk evaluator + visibility widget.</summary>
-    private enum ActiveStrategy { Off, ZScore, EmaCross, RsiReversal, StructureBreak }
+    private enum ActiveStrategy { Off, ZScore, EmaCross, RsiReversal, StructureBreak, Trend, MomentumReversal, BollingerReentry, SrRejection, VolatilityBreakout }
     /// <summary>Keyed by (strategy, signalTime) sehingga tiap strategi menulis jurnal sendiri.</summary>
     private readonly Dictionary<(ActiveStrategy Strategy, double SignalTime), (string Direction, double EntryOpen, double EntryClose, string Outcome)> signalEntries = [];
     private readonly Dictionary<(ActiveStrategy Strategy, double SignalTime), string> firedStrategies = [];
@@ -91,6 +92,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        LoadFavorites();
         LoadStructureMarks();
 #if DEBUG
         VerifyNonRepaintStructure();
@@ -211,7 +213,7 @@ public partial class MainWindow : Window
                 var symbol = Text(market, "symbol");
                 var price = ticks.ValueKind == JsonValueKind.Object && ticks.TryGetProperty(symbol, out var tick) ? Number(tick, "price") : null;
                 var trend = feed.TryGetProperty("trends", out var trendMap) && trendMap.TryGetProperty(symbol, out var trendValue) ? Text(trendValue, "direction") : "NOTREND";
-                allMarkets.Add(new MarketRow(symbol, Text(market, "name"), Text(market, "group"), FormatPrice(price), live.Contains(symbol) ? "CONNECTED" : "WAITING", trend));
+                allMarkets.Add(new MarketRow(symbol, Text(market, "name"), Text(market, "group"), FormatPrice(price), live.Contains(symbol) ? "CONNECTED" : "WAITING", trend, favoriteSymbols.Contains(symbol)));
             }
         }
         ApplyMarketFilter();
@@ -302,9 +304,51 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
     private void ApplyMarketFilter()
     {
         var query = SearchBox.Text.Trim();
-        var selected = allMarkets.Where(row => (groupFilter == "ALL" || row.Group.Equals(groupFilter, StringComparison.OrdinalIgnoreCase)) && (query.Length == 0 || row.Symbol.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Name.Contains(query, StringComparison.OrdinalIgnoreCase))).OrderBy(row => row.Symbol).ToList();
+        var selected = allMarkets.Where(row => MarketMatchesCategory(row, groupFilter) && (query.Length == 0 || row.Symbol.Contains(query, StringComparison.OrdinalIgnoreCase) || row.Name.Contains(query, StringComparison.OrdinalIgnoreCase))).OrderBy(row => row.Symbol).ToList();
         markets.Clear(); foreach (var row in selected) markets.Add(row);
-        MarketCountText.Text = $"{selected.Count} markets shown";
+        MarketCountText.Text = query.Length > 0 ? $"Saran market · {selected.Count} cocok" : $"{selected.Count} market";
+    }
+
+    private static bool MarketMatchesCategory(MarketRow row, string category)
+    {
+        if (category == "ALL") return true;
+        if (category == "FAVORITES") return row.IsFavorite;
+        var group = row.Group.ToUpperInvariant();
+        var symbol = row.Symbol.ToUpperInvariant();
+        var name = row.Name.ToUpperInvariant();
+        return category switch
+        {
+            "OPTION" => symbol.Contains("_OTC") || group.Contains("OTC"),
+            "CURRENCIES" => group.Contains("FOREX") || group.Contains("CURRENCY") || (symbol.Contains('/') && !group.Contains("CRYPTO")),
+            "CRYPTOCURRENCIES" => group.Contains("CRYPTO") || name.Contains("BITCOIN") || name.Contains("ETHEREUM"),
+            "COMMODITIES" => group.Contains("COMMODIT") || new[] { "GOLD", "SILVER", "OIL", "BRENT", "NATURAL GAS", "COPPER" }.Any(name.Contains),
+            "STOCKS" => group.Contains("STOCK") || group.Contains("EQUITY"),
+            "INDICES" => group.Contains("INDEX") || group.Contains("INDICE"),
+            _ => false,
+        };
+    }
+
+    private string FavoritesPath => System.IO.Path.Combine(Root, "data", "market-favorites.txt");
+    private void LoadFavorites()
+    {
+        try { if (File.Exists(FavoritesPath)) favoriteSymbols.UnionWith(File.ReadAllLines(FavoritesPath).Where(line => !string.IsNullOrWhiteSpace(line))); }
+        catch (IOException) { }
+    }
+    private void SaveFavorites()
+    {
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(FavoritesPath)!);
+        File.WriteAllLines(FavoritesPath, favoriteSymbols.OrderBy(symbol => symbol));
+    }
+    private void Favorite_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if ((sender as FrameworkElement)?.Tag is not string symbol) return;
+        if (!favoriteSymbols.Add(symbol)) favoriteSymbols.Remove(symbol);
+        SaveFavorites();
+        for (var index = 0; index < allMarkets.Count; index++)
+            if (allMarkets[index].Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase))
+                allMarkets[index] = allMarkets[index] with { IsFavorite = favoriteSymbols.Contains(symbol) };
+        ApplyMarketFilter();
     }
 
     private static List<Candle> Aggregate(List<Candle> candles, int minutes)
@@ -313,34 +357,26 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         return candles.GroupBy(candle => candle.Time / (minutes * 60) * (minutes * 60)).Select(group => new Candle(group.Key, group.First().Open, group.Max(candle => candle.High), group.Min(candle => candle.Low), group.Last().Close)).ToList();
     }
 
-    private int TimeframeMinutes() => ((ComboBoxItem)TimeframeBox.SelectedItem).Content?.ToString() switch { "2m" => 2, "5m" => 5, "15m" => 15, "30m" => 30, "1h" => 60, _ => 1 };
+    private int TimeframeMinutes() => 1;
 
     private StrategySelection CurrentStrategySelection()
     {
-        // StrategyBox baru adalah sumber kebenaran. Dropdown lama sudah dihapus dari XAML.
-        var active = CurrentActiveStrategy();
-        var label = active switch
-        {
-            ActiveStrategy.ZScore => "Z-SCORE",
-            ActiveStrategy.EmaCross => "EMA 9/21",
-            ActiveStrategy.RsiReversal => "RSI 14",
-            ActiveStrategy.StructureBreak => "STRUCTURE",
-            _ => "OFF",
-        };
-        return new StrategySelection(label, "NONE");
+        var enabled = EnabledStrategies().Select(StrategyName).ToList();
+        return new StrategySelection(enabled.Count == 0 ? "OFF" : string.Join(", ", enabled), "NONE");
+    }
+
+    private IEnumerable<ActiveStrategy> EnabledStrategies()
+    {
+        if (TrendStrategyBox.IsChecked == true) yield return ActiveStrategy.Trend;
+        if (MomentumStrategyBox.IsChecked == true) yield return ActiveStrategy.MomentumReversal;
+        if (BollingerStrategyBox.IsChecked == true) yield return ActiveStrategy.BollingerReentry;
+        if (RejectionStrategyBox.IsChecked == true) yield return ActiveStrategy.SrRejection;
+        if (BreakoutStrategyBox.IsChecked == true) yield return ActiveStrategy.VolatilityBreakout;
     }
 
     private ActiveStrategy CurrentActiveStrategy()
     {
-        var sel = (StrategyBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "OFF";
-        return sel switch
-        {
-            "Z-SCORE REVERSAL" => ActiveStrategy.ZScore,
-            "EMA 9/21 CROSS" => ActiveStrategy.EmaCross,
-            "RSI 14 REVERSAL" => ActiveStrategy.RsiReversal,
-            "STRUCTURE BREAK" => ActiveStrategy.StructureBreak,
-            _ => ActiveStrategy.Off,
-        };
+        return EnabledStrategies().FirstOrDefault();
     }
 
     private static bool StrategyOn(ActiveStrategy active, ActiveStrategy target) => active switch
@@ -357,7 +393,6 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var bosOn = StrategyOn(active, ActiveStrategy.ZScore);
         var any = active != ActiveStrategy.Off;
         // Overlay indikator mengikuti strategi yang menyala.
-        SmaOverlayBox.IsChecked = bosOn;
         DirectionOverlayBox.IsChecked = bosOn;
         LevelsOverlayBox.IsChecked = active == ActiveStrategy.StructureBreak;
         StructureOverlayBox.IsChecked = active == ActiveStrategy.StructureBreak;
@@ -463,8 +498,11 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var duration = TimeframeMinutes() * 60;
         var remaining = SecondsLeftInCandle();
         UpdateStructurePanel(last, structure, trend, slope, threshold, rsi);
-        BinaryMomentumText.Text = $"RSI14  {rsi:0.0}\nRANGE  {range:0.000}%\nAnalysis only";
-        BinaryTimingText.Text = $"M{TimeframeMinutes()} CLOSE\n{TimeSpan.FromSeconds(remaining):mm\\:ss} remaining\nBroker time basis";
+        var atr = Atr(chartCandles.Take(Math.Max(1, chartCandles.Count - 1)).ToList(), 14);
+        var ema9 = Ema(chartCandles.Select(candle => candle.Close), 9).LastOrDefault();
+        var ema21 = Ema(chartCandles.Select(candle => candle.Close), 21).LastOrDefault();
+        BinaryMomentumText.Text = $"OHLC  {FormatPrice(last.Open)} / {FormatPrice(last.High)} / {FormatPrice(last.Low)} / {FormatPrice(last.Close)}\nRSI14  {rsi:0.0} · ATR14 {FormatPrice(atr)}\nEMA 9/21 {(ema9 > ema21 ? "UP" : ema9 < ema21 ? "DOWN" : "FLAT")} · RANGE {range:0.000}%";
+        BinaryTimingText.Text = $"{TimeframeLabel()} CLOSE\n{TimeSpan.FromSeconds(remaining):mm\\:ss} remaining\nBroker time basis";
     }
 
     /// Reads the candle's own shape. Realtime on purpose: the running candle is
@@ -605,6 +643,17 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         return 100 - 100 / (1 + relativeStrength);
     }
 
+    private static (double Lower, double Middle, double Upper) Bollinger(IReadOnlyList<double> values, int period = 20, double deviations = 2)
+    {
+        if (values.Count == 0) return (0, 0, 0);
+        var window = values.TakeLast(period).ToArray();
+        var mean = window.Average();
+        var deviation = Math.Sqrt(window.Average(value => (value - mean) * (value - mean)));
+        return (mean - deviations * deviation, mean, mean + deviations * deviation);
+    }
+
+    private string TimeframeLabel() => ((ComboBoxItem?)TimeframeBox.SelectedItem)?.Content?.ToString() ?? "1m";
+
     private void DrawChart()
     {
         PriceChart.Children.Clear();
@@ -627,7 +676,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
             if (supportLevels.Count > 0) low = Math.Min(low, supportLevels.Min(level => level.Price));
             if (resistanceLevels.Count > 0) high = Math.Max(high, resistanceLevels.Max(level => level.Price));
         }
-        var range = Math.Max(high - low, Math.Abs(high) * .00001); low -= range * .08; high += range * .08; range = high - low;
+        var range = Math.Max(high - low, Math.Abs(high) * .00001); low -= range * 1.5; high += range * 1.5; range = high - low;
         const double left = 5, right = 72, top = 25, bottom = 25;
         var width = Math.Max(1, PriceChart.ActualWidth - left - right); var height = Math.Max(1, PriceChart.ActualHeight - top - bottom);
         double X(int index) => left + (index + .5) * width / chartSlots; double Y(double value) => top + (high - value) * height / range;
@@ -637,17 +686,38 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
             PriceChart.Children.Add(new Line { X1 = left, X2 = left + width, Y1 = y, Y2 = y, Stroke = new SolidColorBrush(Color.FromRgb(31, 46, 65)), StrokeThickness = 1 });
             AddText(price.ToString("N5"), left + width + 5, y - 8, "#7C91AB", 10);
         }
-        if (LegacyAnalysisEnabled && SmaOverlayBox.IsChecked == true && shown.Count >= 20)
+        var timeAxisY = top + height;
+        var timeLabelStep = Math.Max(1, (int)Math.Ceiling(shown.Count / Math.Max(2, width / 90)));
+        for (var index = 0; index < shown.Count; index += timeLabelStep)
         {
-            var sma = new Polyline { Stroke = new SolidColorBrush(Color.FromRgb(240, 185, 11)), StrokeThickness = 1.3 };
-            for (var index = 19; index < shown.Count; index++) sma.Points.Add(new Point(X(index), Y(shown.Skip(index - 19).Take(20).Average(candle => candle.Close))));
-            PriceChart.Children.Add(sma);
+            var axisX = X(index);
+            PriceChart.Children.Add(new Line { X1 = axisX, X2 = axisX, Y1 = top, Y2 = timeAxisY, Stroke = new SolidColorBrush(Color.FromRgb(24, 35, 49)), StrokeThickness = 1 });
+            PriceChart.Children.Add(new Line { X1 = axisX, X2 = axisX, Y1 = timeAxisY - 3, Y2 = timeAxisY + 2, Stroke = new SolidColorBrush(Color.FromRgb(90, 108, 130)), StrokeThickness = 1 });
+            var brokerTime = DateTimeOffset.FromUnixTimeSeconds((long)shown[index].Time + (long)brokerOffset).ToLocalTime();
+            AddText(brokerTime.ToString("HH:mm"), axisX - 17, timeAxisY + 4, "#7C91AB", 9);
         }
         if (LegacyAnalysisEnabled && DirectionOverlayBox.IsChecked == true && shown.Count >= 21)
         {
             DrawEma(9, "#31D2F2");
             DrawEma(21, "#D77CFF");
         }
+        if (BollingerOverlayBox.IsChecked == true && shown.Count >= 20)
+        {
+            var upper = new Polyline { Stroke = new SolidColorBrush(Color.FromRgb(240, 185, 11)), StrokeThickness = 1, Opacity = .7 };
+            var lower = new Polyline { Stroke = new SolidColorBrush(Color.FromRgb(240, 185, 11)), StrokeThickness = 1, Opacity = .7 };
+            for (var index = 19; index < shown.Count; index++)
+            {
+                var bands = Bollinger(shown.Skip(index - 19).Take(20).Select(candle => candle.Close).ToList());
+                upper.Points.Add(new Point(X(index), Y(bands.Upper)));
+                lower.Points.Add(new Point(X(index), Y(bands.Lower)));
+            }
+            PriceChart.Children.Add(upper); PriceChart.Children.Add(lower);
+            AddText("BOLL 20,2", left + 5, top + 32, "#F0B90B", 9, "#101722");
+        }
+        if (RsiOverlayBox.IsChecked == true && shown.Count >= 15)
+            AddText($"RSI 14 {Rsi(shown):0.0}", left + 5, top + 46, "#D77CFF", 9, "#101722");
+        if (AtrOverlayBox.IsChecked == true && shown.Count >= 15)
+            AddText($"ATR 14 {FormatPrice(Atr(shown, 14))}", left + 5, top + 60, "#52B7D8", 9, "#101722");
         void DrawEma(int period, string color)
         {
             var values = Ema(shown.Select(candle => candle.Close), period);
@@ -710,34 +780,85 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
             }
         }
         var start = DateTimeOffset.FromUnixTimeSeconds((long)shown[0].Time).LocalDateTime; var end = DateTimeOffset.FromUnixTimeSeconds((long)last.Time).LocalDateTime;
-        ChartInfoText.Text = $"{selectedSymbol} · {TimeframeMinutes()}m · {shown.Count} candles · {closedCount} bars analysed (incl. running) · {structure.Trend} · MODE {strategy.Primary} · FILTER {strategy.Filter} · {(autoEnd ? "AUTO END · latest right" : "MANUAL PAN")} · entry locked at 5s, never redrawn";
+        ChartInfoText.Text = $"{selectedSymbol} · {TimeframeLabel()} · {shown.Count} candles · {closedCount} closed · {structure.Trend} · {(strategy.Primary == "OFF" ? "strategi OFF" : strategy.Primary)}";
         DrawCrosshair(shown, X, Y, left, top, width, height);
         chartAlertsReady = true;
     }
 
     private void DrawStrategyArrows(IReadOnlyList<Candle> shown, int startIndex, Func<int, double> x, Func<double, double> y)
     {
-        var strategy = CurrentActiveStrategy();
-        if (strategy == ActiveStrategy.Off) return;
-        var lastSignal = -SignalCooldownBars;
-        for (var localIndex = 21; localIndex < shown.Count; localIndex++)
+        var enabled = EnabledStrategies().ToList();
+        if (enabled.Count == 0) return;
+        for (var localIndex = 1; localIndex < shown.Count; localIndex++)
         {
-            var index = startIndex + localIndex;
-            if (index < 21 || index - lastSignal < SignalCooldownBars) continue;
-            var direction = HistoricalDirection(strategy, index);
-            if (direction is null) continue;
-            DrawArrow(shown[localIndex], direction, x(localIndex), y);
-            lastSignal = index;
+            var signalIndex = startIndex + localIndex - 1;
+            if (signalIndex < 25 || signalIndex >= chartCandles.Count - 1) continue;
+            foreach (var strategy in enabled)
+            {
+                var direction = HistoricalDirection(strategy, signalIndex);
+                if (direction is null) continue;
+                DrawArrow(shown[localIndex], direction, x(localIndex), y, StrategyCode(strategy));
+                if (signalIndex == chartCandles.Count - 2)
+                    PushChartAlert($"{StrategyName(strategy)} · ENTRY {direction}", direction == "CALL" ? "UP" : "DOWN", chartCandles[signalIndex].Time, "panah pada candle entry berikutnya", force: true);
+            }
         }
     }
 
     private string? HistoricalDirection(ActiveStrategy strategy, int index)
     {
         var sample = chartCandles.Take(index + 1).ToList();
+        if (sample.Count < 26) return null;
         var last = sample[^1];
+        var previous = sample[^2];
+        var closes = sample.Select(candle => candle.Close).ToList();
+        var fast = Ema(closes, 9);
+        var slow = Ema(closes, 21);
+        var pattern = CandlePatternOf(sample);
+        var bullishCandle = last.Close > last.Open && (pattern.Contains("Bullish") || pattern == "Hammer" || last.Close > previous.High);
+        var bearishCandle = last.Close < last.Open && (pattern.Contains("Bearish") || pattern == "Shooting Star" || last.Close < previous.Low);
+        if (strategy == ActiveStrategy.Trend)
+        {
+            var structure = AnalyzeStructure(sample, sample.Count);
+            var bos = structure.BosEvents.LastOrDefault(item => item.Index == sample.Count - 1);
+            var crossUp = fast[^2] <= slow[^2] && fast[^1] > slow[^1];
+            var crossDown = fast[^2] >= slow[^2] && fast[^1] < slow[^1];
+            return (bos?.Direction == "UP" || crossUp) && fast[^1] > slow[^1] && structure.Trend == "UP" && bullishCandle ? "CALL"
+                : (bos?.Direction == "DOWN" || crossDown) && fast[^1] < slow[^1] && structure.Trend == "DOWN" && bearishCandle ? "PUT" : null;
+        }
+        if (strategy == ActiveStrategy.MomentumReversal)
+        {
+            var before = Rsi(sample.Take(sample.Count - 1).ToList());
+            var now = Rsi(sample);
+            return before < 30 && now >= 30 && bullishCandle ? "CALL"
+                : before > 70 && now <= 70 && bearishCandle ? "PUT" : null;
+        }
+        if (strategy == ActiveStrategy.BollingerReentry)
+        {
+            var bandsBefore = Bollinger(sample.Take(sample.Count - 1).Select(candle => candle.Close).TakeLast(20).ToList());
+            var bandsNow = Bollinger(closes.TakeLast(20).ToList());
+            return previous.Close < bandsBefore.Lower && last.Close >= bandsNow.Lower && last.Close < bandsNow.Middle ? "CALL"
+                : previous.Close > bandsBefore.Upper && last.Close <= bandsNow.Upper && last.Close > bandsNow.Middle ? "PUT" : null;
+        }
+        if (strategy == ActiveStrategy.SrRejection)
+        {
+            var levels = AnalyzeStructure(sample.Take(sample.Count - 1).ToList(), sample.Count - 1).Swings;
+            var support = RecentLevels(levels, "L").LastOrDefault()?.Price;
+            var resistance = RecentLevels(levels, "H").LastOrDefault()?.Price;
+            var tolerance = Atr(sample.Take(sample.Count - 1).ToList(), 14) * .2;
+            if (support is > 0 && tolerance > 0 && last.Low <= support + tolerance && last.Close > support && last.Close > last.Open) return "CALL";
+            if (resistance is > 0 && tolerance > 0 && last.High >= resistance - tolerance && last.Close < resistance && last.Close < last.Open) return "PUT";
+            return null;
+        }
+        if (strategy == ActiveStrategy.VolatilityBreakout)
+        {
+            var priorRange = sample.Skip(sample.Count - 13).Take(12).ToList();
+            var atr = Atr(sample.Take(sample.Count - 1).ToList(), 14);
+            if (atr <= 0) return null;
+            return last.Close > priorRange.Max(candle => candle.High) && last.High - last.Low >= atr * 1.05 ? "CALL"
+                : last.Close < priorRange.Min(candle => candle.Low) && last.High - last.Low >= atr * 1.05 ? "PUT" : null;
+        }
         if (strategy == ActiveStrategy.ZScore)
         {
-            var closes = sample.Select(candle => candle.Close).ToList();
             var average = closes.TakeLast(20).Average();
             var move = closes.TakeLast(20).Zip(closes.TakeLast(21), (current, previous) => Math.Abs(current - previous)).Average();
             var z = move > 0 ? (last.Close - average) / move : 0;
@@ -745,8 +866,6 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         }
         if (strategy == ActiveStrategy.EmaCross)
         {
-            var closes = sample.Select(candle => candle.Close).ToList();
-            var fast = Ema(closes, 9); var slow = Ema(closes, 21);
             return fast.Count < 2 || slow.Count < 2 ? null : fast[^2] <= slow[^2] && fast[^1] > slow[^1] ? "CALL" : fast[^2] >= slow[^2] && fast[^1] < slow[^1] ? "PUT" : null;
         }
         if (strategy == ActiveStrategy.RsiReversal)
@@ -762,13 +881,24 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         return null;
     }
 
-    private void DrawArrow(Candle candle, string direction, double x, Func<double, double> y)
+    private static string StrategyCode(ActiveStrategy strategy) => strategy switch
+    {
+        ActiveStrategy.Trend => "T",
+        ActiveStrategy.MomentumReversal => "M",
+        ActiveStrategy.BollingerReentry => "B",
+        ActiveStrategy.SrRejection => "S",
+        ActiveStrategy.VolatilityBreakout => "V",
+        _ => "",
+    };
+
+    private void DrawArrow(Candle candle, string direction, double x, Func<double, double> y, string code = "")
     {
         var up = direction == "CALL";
         var colour = (Brush)new BrushConverter().ConvertFromString(up ? "#28D19C" : "#F26D78")!;
         var arrowY = up ? y(candle.Low) + 16 : y(candle.High) - 16;
         var arrow = new Polygon { Fill = colour, Points = up ? [new Point(x, arrowY - 11), new Point(x - 6, arrowY + 3), new Point(x + 6, arrowY + 3)] : [new Point(x, arrowY + 11), new Point(x - 6, arrowY - 3), new Point(x + 6, arrowY - 3)] };
         Panel.SetZIndex(arrow, 30); PriceChart.Children.Add(arrow);
+        if (code.Length > 0) AddText(code, x - 3, arrowY + (up ? 4 : -13), up ? "#25C89A" : "#F45B69", 8);
     }
 
     private void DrawCrosshair(IReadOnlyList<Candle> shown, Func<int, double> x, Func<double, double> y, double left, double top, double width, double height)
@@ -1113,6 +1243,11 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         catch (Exception error) { StatusText.Text = error.Message; }
     }
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) => ApplyMarketFilter();
+    private void OpenMarketSearch_Click(object sender, RoutedEventArgs e)
+    {
+        SearchBox.Focus();
+        SearchBox.SelectAll();
+    }
     private void GroupFilter_Click(object sender, RoutedEventArgs e) { groupFilter = ((Button)sender).Tag.ToString() ?? "ALL"; ApplyMarketFilter(); }
     private async void MarketList_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (MarketList.SelectedItem is MarketRow row) await SwitchSymbolAsync(row.Symbol); }
     private async Task SwitchSymbolAsync(string symbol)
@@ -1133,10 +1268,10 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
     private void OverlayChanged(object sender, RoutedEventArgs e) { if (IsLoaded) DrawChart(); }
     private void AutoEndChanged(object sender, RoutedEventArgs e) { if (IsLoaded && AutoEndBox.IsChecked == true) ChartReset_Click(sender, e); }
     private void PriceChart_SizeChanged(object sender, SizeChangedEventArgs e) => DrawChart();
-    private void ChartZoomIn_Click(object sender, RoutedEventArgs e) { AutoEndBox.IsChecked = true; visibleBars = Math.Max(20, (int)(visibleBars / 1.4)); firstVisible = Math.Max(0, chartCandles.Count - visibleBars); DrawChart(); }
-    private void ChartZoomOut_Click(object sender, RoutedEventArgs e) { AutoEndBox.IsChecked = true; visibleBars = Math.Min(Math.Max(20, chartCandles.Count), (int)(visibleBars * 1.4)); firstVisible = Math.Max(0, chartCandles.Count - visibleBars); DrawChart(); }
-    private void ChartReset_Click(object sender, RoutedEventArgs e) { AutoEndBox.IsChecked = true; visibleBars = Math.Min(180, Math.Max(20, chartCandles.Count)); firstVisible = Math.Max(0, chartCandles.Count - visibleBars); DrawChart(); }
-    private void PriceChart_MouseWheel(object sender, MouseWheelEventArgs e) { if (e.Delta > 0) ChartZoomIn_Click(sender, e); else ChartZoomOut_Click(sender, e); }
+    private void ChartZoomIn_Click(object sender, RoutedEventArgs e) { AutoEndBox.IsChecked = true; visibleBars = Math.Max(5, (int)(visibleBars / 1.25)); firstVisible = Math.Max(0, chartCandles.Count - visibleBars); DrawChart(); }
+    private void ChartZoomOut_Click(object sender, RoutedEventArgs e) { AutoEndBox.IsChecked = true; visibleBars = Math.Min(Math.Max(5, chartCandles.Count), (int)(visibleBars * 1.25)); firstVisible = Math.Max(0, chartCandles.Count - visibleBars); DrawChart(); }
+    private void ChartReset_Click(object sender, RoutedEventArgs e) { AutoEndBox.IsChecked = true; visibleBars = Math.Min(24, Math.Max(5, chartCandles.Count)); firstVisible = Math.Max(0, chartCandles.Count - visibleBars); DrawChart(); }
+    private void PriceChart_MouseWheel(object sender, MouseWheelEventArgs e) { if (e.Delta > 0) ChartZoomIn_Click(sender, e); else ChartZoomOut_Click(sender, e); e.Handled = true; }
     private void PriceChart_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton != MouseButton.Left) return; panning = true; panStart = e.GetPosition(PriceChart); panStartFirst = firstVisible; PriceChart.CaptureMouse(); }
     private void PriceChart_MouseMove(object sender, System.Windows.Input.MouseEventArgs e) { hoverPoint = e.GetPosition(PriceChart); hasHover = true; if (!panning) { DrawChart(); return; } var delta = hoverPoint.X - panStart.X; if (Math.Abs(delta) > 3) AutoEndBox.IsChecked = false; firstVisible = Math.Clamp(panStartFirst - (int)Math.Round(delta * visibleBars / Math.Max(1, PriceChart.ActualWidth)), 0, Math.Max(0, chartCandles.Count - visibleBars)); DrawChart(); }
     private void PriceChart_MouseUp(object sender, MouseButtonEventArgs e) { panning = false; PriceChart.ReleaseMouseCapture(); }
@@ -1357,6 +1492,11 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
 
     private static string StrategyName(ActiveStrategy strategy) => strategy switch
     {
+        ActiveStrategy.Trend => "TREND",
+        ActiveStrategy.MomentumReversal => "MOMENTUM REVERSAL",
+        ActiveStrategy.BollingerReentry => "BOLLINGER RE-ENTRY",
+        ActiveStrategy.SrRejection => "S/R REJECTION",
+        ActiveStrategy.VolatilityBreakout => "VOLATILITY BREAKOUT",
         ActiveStrategy.ZScore => "Z-SCORE",
         ActiveStrategy.EmaCross => "EMA-CROSS",
         ActiveStrategy.RsiReversal => "RSI-REVERSAL",
@@ -1457,7 +1597,8 @@ private sealed record Candle(double Time, double Open, double High, double Low, 
     private sealed record StrategySelection(string Primary, string Filter);
     private sealed record StrategyEvent(int Index, string Direction, double Level, string Kind);
     private sealed record StructureAnalysis(List<SwingPoint> Swings, List<StrategyEvent> BosEvents, List<StrategyEvent> SmcEvents, string Trend);
-    private sealed record MarketRow(string Symbol, string Name, string Group, string Price, string State, string Trend);
+    private sealed record MarketRow(string Symbol, string Name, string Group, string Price, string State, string Trend, bool IsFavorite)
+    { public string FavoriteGlyph => IsFavorite ? "★" : "☆"; }
     private sealed record ChartAlertRow(string Time, string Message);
 }
 
@@ -1465,6 +1606,7 @@ internal static class JsonElementExtensions
 {
     internal static int GetArrayLengthSafe(this JsonElement element, string name) => element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Array ? value.GetArrayLength() : 0;
 }
+
 
 
 
