@@ -79,7 +79,7 @@ public partial class MainWindow : Window
     private readonly SlShStore slShStore = new(System.IO.Path.Combine(Root, "data"));
 
     /// <summary>Strategi yang sedang menyala. Dipakai untuk evaluator + visibility widget.</summary>
-    private enum ActiveStrategy { Off, ZScore, EmaCross, RsiReversal, StructureBreak, Trend, MomentumReversal, BollingerReentry, SrRejection, VolatilityBreakout }
+    private enum ActiveStrategy { Off, ZScore, EmaCross, RsiReversal, StructureBreak, Trend, MomentumReversal, BollingerReentry, SrRejection, VolatilityBreakout, Smc }
     /// <summary>Keyed by (strategy, signalTime) sehingga tiap strategi menulis jurnal sendiri.</summary>
     private readonly Dictionary<(ActiveStrategy Strategy, double SignalTime), (string Direction, double EntryOpen, double EntryClose, string Outcome)> signalEntries = [];
     private readonly Dictionary<(ActiveStrategy Strategy, double SignalTime), string> firedStrategies = [];
@@ -391,6 +391,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         if (BollingerStrategyBox.IsChecked == true) yield return ActiveStrategy.BollingerReentry;
         if (RejectionStrategyBox.IsChecked == true) yield return ActiveStrategy.SrRejection;
         if (BreakoutStrategyBox.IsChecked == true) yield return ActiveStrategy.VolatilityBreakout;
+        if (SmcOverlayBox.IsChecked == true) yield return ActiveStrategy.Smc;
     }
 
     private ActiveStrategy CurrentActiveStrategy()
@@ -701,6 +702,111 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         StructSignal.Foreground = (Brush)new BrushConverter().ConvertFromString(structureSignal switch { "BUY" => "#25C89A", "SELL" => "#F45B69", _ => "#E7B65A" })!;
     }
 
+
+    private sealed record SmcAnalysis(string HtfBias, string Zone, double? ObLow, double? ObHigh, string ObKind, double? FvgLow, double? FvgHigh, string FvgKind, string Liquidity, int Score, string Signal, string Detail);
+
+    /// SMC/ICT read for binary-option M1. HTF bias is aggregated from the same
+    /// closed M1 candles (M15 + H1) so no extra feed is needed. Every number is
+    /// computed from CLOSED candles only -- it never repaints. Confluence is a
+    /// confidence score, NOT a 100% guarantee; SMC has no such edge (see
+    /// AUDIT-STRATEGI.md). ponytail: M15/H1 only; add M5/M30 if scalps need it.
+
+    private static IReadOnlyList<Candle> AggregateCandles(IReadOnlyList<Candle> candles, int factor)
+    {
+        var result = new List<Candle>();
+        for (var index = 0; index + factor <= candles.Count; index += factor)
+        {
+            var slice = candles.Skip(index).Take(factor).ToList();
+            result.Add(new Candle(slice[0].Time, slice[0].Open, slice.Max(candle => candle.High), slice.Min(candle => candle.Low), slice[^1].Close));
+        }
+        return result;
+    }
+
+    private static (double? Low, double? High) NearestFvg(IReadOnlyList<Candle> candles, double price)
+    {
+        double? bestLow = null, bestHigh = null;
+        var bestDistance = double.MaxValue;
+        for (var index = 2; index < candles.Count; index++)
+        {
+            double low, high;
+            if (candles[index].Low > candles[index - 2].High) { low = candles[index - 2].High; high = candles[index].Low; }
+            else if (candles[index].High < candles[index - 2].Low) { low = candles[index].High; high = candles[index - 2].Low; }
+            else continue;
+            var distance = Math.Abs(price - (low + high) / 2);
+            if (distance < bestDistance) { bestDistance = distance; bestLow = low; bestHigh = high; }
+        }
+        return (bestLow, bestHigh);
+    }
+
+    private static SmcAnalysis AnalyzeSmcFull(IReadOnlyList<Candle> closedCandles, double price, double unit)
+    {
+        var empty = new SmcAnalysis("\u2014", "\u2014", null, null, "\u2014", null, null, "\u2014", "belum ada data", 0, "NO TRADE", "butuh 30 candle");
+        if (closedCandles.Count < 30) return empty;
+        var m15 = AggregateCandles(closedCandles, 15);
+        var h1 = AggregateCandles(closedCandles, 60);
+        if (m15.Count < 4) return empty;
+        var m15Structure = AnalyzeStructure(m15, m15.Count);
+        var h1Structure = AnalyzeStructure(h1, h1.Count);
+        var bias = h1Structure.Trend == "UP" || (h1Structure.Trend == "RANGE" && m15Structure.Trend == "UP") ? "BULLISH"
+            : h1Structure.Trend == "DOWN" || (h1Structure.Trend == "RANGE" && m15Structure.Trend == "DOWN") ? "BEARISH" : "NETRAL";
+        var swings = m15Structure.Swings;
+        var recent = swings.TakeLast(6).ToList();
+        var zone = "RANGE";
+        if (recent.Count >= 2)
+        {
+            var rangeHigh = recent.Max(swing => swing.Price);
+            var rangeLow = recent.Min(swing => swing.Price);
+            var span = rangeHigh - rangeLow;
+            if (span > 0)
+            {
+                var position = (price - rangeLow) / span;
+                zone = position >= .5 ? $"PREMIUM ({position * 100:0}% dari low)" : $"DISCOUNT ({(1 - position) * 100:0}% dari low)";
+            }
+        }
+        var last = closedCandles[^1];
+        double? obLow = null, obHigh = null; var obKind = "\u2014";
+        if (last.Close < last.Open)
+        {
+            var highSwing = swings.LastOrDefault(swing => swing.Kind == "H" && swing.Price >= last.High);
+            if (highSwing is not null)
+            {
+                var index = highSwing.Index;
+                obHigh = m15[index].High;
+                var low = m15[index].Low;
+                for (var offset = index; offset <= Math.Min(index + 1, m15.Count - 1); offset++) low = Math.Min(low, m15[offset].Low);
+                obLow = low; obKind = "SUPPLY";
+            }
+        }
+        else if (last.Close > last.Open)
+        {
+            var lowSwing = swings.LastOrDefault(swing => swing.Kind == "L" && swing.Price <= last.Low);
+            if (lowSwing is not null)
+            {
+                var index = lowSwing.Index;
+                obLow = m15[index].Low;
+                var high = m15[index].High;
+                for (var offset = index; offset <= Math.Min(index + 1, m15.Count - 1); offset++) high = Math.Max(high, m15[offset].High);
+                obHigh = high; obKind = "DEMAND";
+            }
+        }
+        var (fvgLow, fvgHigh) = NearestFvg(m15, price);
+        var fvgKind = fvgLow is null ? "\u2014" : fvgLow > price ? "di atas" : "di bawah";
+        var liquidity = "tidak ada sweep";
+        var sweep = m15Structure.SmcEvents.LastOrDefault();
+        if (sweep is not null && m15.Count - 1 - sweep.Index <= 6) liquidity = $"{sweep.Kind} {sweep.Direction} @ {FormatPrice(sweep.Level)} ({m15.Count - 1 - sweep.Index} candle M15 lalu)";
+        var biasDirection = bias == "BULLISH" ? 1 : bias == "BEARISH" ? -1 : 0;
+        var sweepDirection = sweep is not null && m15.Count - 1 - sweep.Index <= 6 ? (sweep.Direction == "UP" ? 1 : -1) : 0;
+        var obDirection = obKind == "DEMAND" ? 1 : obKind == "SUPPLY" ? -1 : 0;
+        var nearFvg = fvgLow is not null && (fvgLow > price ? fvgLow - price : price - fvgHigh) / unit <= 15 ? (fvgLow > price ? 1 : -1) : 0;
+        var bos = m15Structure.BosEvents.LastOrDefault();
+        var bosDirection = bos is not null && m15.Count - 1 - bos.Index <= 5 ? (bos.Direction == "UP" ? 1 : -1) : 0;
+        var bullish = new[] { biasDirection, sweepDirection, obDirection, nearFvg, bosDirection }.Count(direction => direction > 0);
+        var bearish = new[] { biasDirection, sweepDirection, obDirection, nearFvg, bosDirection }.Count(direction => direction < 0);
+        var score = Math.Max(bullish, bearish) * 20;
+        var signal = bullish >= 3 ? "BUY" : bearish >= 3 ? "SELL" : "NO TRADE";
+        var detail = $"bias {bias}, {(sweepDirection != 0 ? "sweep" : "tanpa sweep")}, {(obDirection != 0 ? "OB" : "tanpa OB")}, {(nearFvg != 0 ? "FVG dekat" : "FVG jauh")}, {(bosDirection != 0 ? "BOS" : "tanpa BOS")}";
+        return new SmcAnalysis(bias, zone, obLow, obHigh, obKind, fvgLow, fvgHigh, fvgKind, liquidity, score, signal, detail);
+    }
     private static string EvaluateStructurePatternSignal(IReadOnlyList<Candle> candles)
     {
         var last = candles[^1];
@@ -911,6 +1017,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
                 Panel.SetZIndex(breakLine, 12); PriceChart.Children.Add(breakLine);
             }
         }
+        if (SmcOverlayBox.IsChecked == true) DrawSmcOverlay(shown, startIndex, X, Y, left, width);
         var start = DateTimeOffset.FromUnixTimeSeconds((long)shown[0].Time).LocalDateTime; var end = DateTimeOffset.FromUnixTimeSeconds((long)last.Time).LocalDateTime;
         ChartInfoText.Text = $"{selectedSymbol} · {TimeframeLabel()} · {shown.Count} candles · {closedCount} closed · {structure.Trend} · {(strategy.Primary == "OFF" ? "strategi OFF" : strategy.Primary)}";
         DrawCrosshair(shown, X, Y, left, top, width, height);
@@ -1010,6 +1117,13 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
             var prior = sample.Skip(Math.Max(0, sample.Count - 6)).Take(5).ToList();
             return last.Close > prior.Max(candle => candle.High) ? "CALL" : last.Close < prior.Min(candle => candle.Low) ? "PUT" : null;
         }
+        if (strategy == ActiveStrategy.Smc)
+        {
+            // Confluence SMC/ICT dari candle yang sudah close: minimal 3 dari 5
+            // faktor (bias HTF, liquidity sweep, order block, FVG dekat, BOS M15).
+            var smc = AnalyzeSmcFull(sample.Take(sample.Count - 1).ToList(), last.Close, Math.Max(last.Close * 1e-5, 1e-9));
+            return smc.Signal == "BUY" ? "CALL" : smc.Signal == "SELL" ? "PUT" : null;
+        }
         return null;
     }
 
@@ -1020,6 +1134,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         ActiveStrategy.BollingerReentry => "B",
         ActiveStrategy.SrRejection => "S",
         ActiveStrategy.VolatilityBreakout => "V",
+        ActiveStrategy.Smc => "C",
         _ => "",
     };
 
@@ -1119,6 +1234,40 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var line = new Line { X1 = X(startIndex), X2 = X(lastIndex), Y1 = y1, Y2 = y2, Stroke = (Brush)new BrushConverter().ConvertFromString(color)!, StrokeThickness = 1.1, StrokeDashArray = [5, 3] };
         Panel.SetZIndex(line, 6); PriceChart.Children.Add(line);
         AddPinnedText($"{label} CHANNEL", Math.Max(left + 5, X(lastIndex) - 95), y2 - 7, color, 9, "#101722");
+    }
+    /// Draws SMC/ICT: HTF bias text, unmitigated order block zone, nearest fair
+    /// value gap, and the latest liquidity sweep. Informational overlay only --
+    /// it changes no signal by itself. Never repaints: uses closed candles.
+    private void DrawSmcOverlay(IReadOnlyList<Candle> shown, int startIndex, Func<int, double> X, Func<double, double> Y, double left, double width)
+    {
+        var closed = chartCandles.Take(Math.Max(0, chartCandles.Count - 1)).ToList();
+        if (closed.Count < 30) return;
+        var price = chartCandles[^1].Close;
+        var smc = AnalyzeSmcFull(closed, price, Math.Max(price * 1e-5, 1e-9));
+        AddText($"SMC {smc.HtfBias} \u00b7 {smc.Zone} \u00b7 {smc.Signal} {smc.Score}/100", left + 5, 74, smc.Signal == "BUY" ? "#25C89A" : smc.Signal == "SELL" ? "#F45B69" : "#E7B65A", 9, "#101722");
+        if (smc.ObLow is not null && smc.ObHigh is not null)
+        {
+            var color = smc.ObKind == "DEMAND" ? "#25C89A" : "#F45B69";
+            var top = Y(smc.ObHigh.Value); var bottom = Y(smc.ObLow.Value);
+            var rect = new Rectangle { Width = width, Height = Math.Max(1, bottom - top), Fill = (Brush)new BrushConverter().ConvertFromString(color)!, Opacity = .16 };
+            Canvas.SetLeft(rect, left); Canvas.SetTop(rect, top); Panel.SetZIndex(rect, 3); PriceChart.Children.Add(rect);
+            AddPinnedText($"OB {smc.ObKind}", left + width - 96, top - 6, color, 9, "#101722");
+        }
+        if (smc.FvgLow is not null && smc.FvgHigh is not null)
+        {
+            var color = smc.FvgLow > price ? "#F45B69" : "#25C89A";
+            var top = Y(smc.FvgHigh.Value); var bottom = Y(smc.FvgLow.Value);
+            var rect = new Rectangle { Width = width, Height = Math.Max(1, bottom - top), Fill = (Brush)new BrushConverter().ConvertFromString("#F0B90B")!, Opacity = .13 };
+            Canvas.SetLeft(rect, left); Canvas.SetTop(rect, top); Panel.SetZIndex(rect, 3); PriceChart.Children.Add(rect);
+            AddPinnedText($"FVG {smc.FvgKind}", left + width - 96, top - 6, "#F0B90B", 9, "#101722");
+        }
+        var m15 = AggregateCandles(closed, 15);
+        var sweep = AnalyzeStructure(m15, m15.Count).SmcEvents.LastOrDefault();
+        if (sweep is not null)
+        {
+            var color = sweep.Direction == "UP" ? "#25C89A" : "#F45B69";
+            DrawLevel(sweep.Level, "SWEEP", color, Y, left, width);
+        }
     }
     private void DrawLevel(double price, string label, string color, Func<double, double> y, double left, double width, bool dashed = true)
     {
@@ -1637,6 +1786,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         ActiveStrategy.EmaCross => "EMA-CROSS",
         ActiveStrategy.RsiReversal => "RSI-REVERSAL",
         ActiveStrategy.StructureBreak => "STRUCTURE-BREAK",
+        ActiveStrategy.Smc => "SMC / ICT",
         _ => "OFF",
     };
 

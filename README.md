@@ -137,6 +137,7 @@ That's it — no `.env` file required to get a fully working terminal.
 The Windows build at `E:\JANGAN DI HAPUS\OpenTerminal` includes a read-only Pocket Option DEMO feed:
 
 - Realtime broker ticks and M1 OHLCV candles refresh every second.
+- SMC / ICT (`INDIKATOR` -> `STRATEGI`) computes bias, order blocks, fair-value gaps, liquidity sweeps and a confluence score (20 points per aligned factor of 5; a signal needs at least 3). It reads closed candles only, so markers never repaint. Confluence is a probability ranking, never a guarantee.
 - LIVE CANDLE signal uses a completed M1 candle only: a body move of at least 3 normalized pips gives BUY/SELL; otherwise NO TRADE. The result stays fixed for the next M1 candle. Signals are read-only and never place orders.
 - Chart, quote, watchlist, and connection status use broker data; missing data stays visibly unavailable.
 - Status labels are `CONNECTED`, `UPDATING`, or `DISCONNECTED`; updating text blinks unless reduced motion is enabled.
@@ -185,8 +186,8 @@ Portfolio data persists in the `terminal-data` volume (SQLite, WAL mode). Ports 
 
 ```
 ├── desktop/                 # Native WPF Windows shell
-│   ├── MainWindow.xaml      # Desktop layout, B.O.S chart, Market Explorer
-│   ├── MainWindow.xaml.cs   # Local API lifecycle, M1 chart, confirmed B.O.S/CHoCH
+│   ├── MainWindow.xaml      # Desktop layout, INDIKATOR menu (INDIKATOR / METRIK / STRATEGI), Market Explorer
+│   ├── MainWindow.xaml.cs   # Local API lifecycle, M1 chart, confirmed B.O.S/CHoCH, SMC/ICT confluence
 │   └── dist/                # OpenTerminal.exe distribution build
 ├── server/                  # Express + TypeScript API
 │   └── src/
@@ -215,6 +216,16 @@ Run tests with `npm test` (Vitest, no network calls). CI runs on every push — 
 - The active candle never receives a structure arrow; labels do not repaint.
 - One confirmed break produces one arrow. Support/resistance bounce arrows are not rendered.
 - Analysis is DEMO data-only; no order entry, account action, or guaranteed outcome is provided.
+
+## SMC / ICT strategy
+
+`INDIKATOR` -> `STRATEGI` -> `SMC / ICT (OB · FVG · Liquidity)`. Enabling it applies the overlay to the chart immediately and adds the strategy to the signal evaluator.
+
+- Bias is the trend of aggregated M15 and H1 candles; entry candles are M1.
+- Detects the last unmitigated order block, the nearest fair-value gap (within 15 pips), a liquidity sweep, and a break of structure.
+- Confluence score: 20 points per aligned factor out of 5 (bias, sweep, order block, near FVG, BOS). A signal appears at 3 or more aligned factors; below that it stays `NO TRADE`.
+- Everything is computed from **closed** candles, so an arrow or remark, once printed, is never revised or removed.
+- On a 1M entry the signal shows at candle close and is intended for the next candle; no order is placed and no win rate is promised.
 
 <br/>
 
