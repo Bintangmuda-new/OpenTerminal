@@ -48,6 +48,7 @@ public partial class MainWindow : Window
     private readonly HashSet<string> alertDedup = [];
     private double brokerOffset;
     private double lastTickTime;
+    private string lastLiveSignalCandleKey = "";
     /// Locked entries keyed by candle time. Once written, never revised — that is
     /// what makes the arrow non-repainting even though it fires before the close.
     private readonly Dictionary<double, string> firedEntries = []; // legacy alias: first direction per candle time (arrow drawing)
@@ -186,7 +187,7 @@ public partial class MainWindow : Window
                 UpdateTape(feed);
                 nextMarketRefresh = DateTime.UtcNow.AddSeconds(5);
             }
-            await UpdateSelected(feed);
+            UpdateSelected(feed);
             if (DateTime.UtcNow >= nextNewsRefresh) _ = RefreshNews();
         }
         catch (Exception error) { SetStatus("disconnected", error.Message); }
@@ -219,7 +220,7 @@ public partial class MainWindow : Window
         ApplyMarketFilter();
     }
 
-    private async Task UpdateSelected(JsonElement feed)
+    private void UpdateSelected(JsonElement feed)
     {
         var selected = allMarkets.FirstOrDefault(row => row.Symbol == selectedSymbol);
         SelectedSymbolText.Text = selected?.Symbol ?? selectedSymbol;
@@ -243,12 +244,15 @@ public partial class MainWindow : Window
                     latestCandles[^1] = current with { High = Math.Max(current.High, price.Value), Low = Math.Min(current.Low, price.Value), Close = price.Value };
             }
         }
+        UpdateClosedCandleSignal(latestCandles);
         if (latestCandles.Count < 2)
         {
 var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProperty(selectedSymbol, out _);
             PriceChart.Visibility = Visibility.Collapsed;
-            QuoteText.Text = closed ? "MARKET\nCLOSED" : "MEMUAT\nCandle M1 belum tersedia";
-            ChartLoadingText.Text = closed ? "MARKET CLOSED" : "LOADING MARKET...";
+            QuoteText.Text = closed ? "Market\nClosed" : "Memuat\nCandle M1 belum tersedia";
+            QuoteDelta.Text = "";
+            QuoteFlipText.Inlines.Clear();
+            ChartLoadingText.Text = closed ? "Market closed" : "Memuat market...";
             ChartLoadingText.Foreground = (Brush)new BrushConverter().ConvertFromString(closed ? "#F26D78" : "#8492A6")!;
             ChartInfoText.Text = $"{selectedSymbol} · {(closed ? "market closed" : "memuat candle")}";
             ChartStatusOverlay.Visibility = Visibility.Visible;
@@ -261,7 +265,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var last = chartCandles.LastOrDefault();
         var first = chartCandles.FirstOrDefault();
         var change = first is not null && last is not null ? (last.Close / first.Open - 1) * 100 : 0;
-        QuoteText.Text = last is null ? "WAITING" : FormatPrice(last.Close);
+        QuoteText.Text = last is null ? "Menunggu" : FormatPrice(last.Close);
         UpdateLiveCandle(last, change);
         UpdateBinaryMetrics(last);
         UpdateMarketQuality(feed, last);
@@ -435,7 +439,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         {
             QuoteArrow.Text = "·";
             QuoteDelta.Text = "";
-            QuoteFlipText.Text = "";
+            QuoteFlipText.Inlines.Clear();
             QuotePressureBar.Width = 0;
             QuoteTickAge.Text = "—";
             return;
@@ -450,7 +454,8 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         QuoteArrow.Text = flat ? "=" : rising ? "▲" : "▼";
         QuoteArrow.Foreground = brush;
         QuoteText.Foreground = brush;
-        QuoteDelta.Text = $"open {FormatPrice(last.Open)} · {change:+0.000;-0.000;0.000}% sesi";
+        QuoteDelta.Text = $"Open {FormatPrice(last.Open)} · {change:+0.000;-0.000;0.000}% sesi";
+        QuoteDelta.Foreground = brush;
 
         // Position of price inside the candle's own range: 0 = at the low,
         // 1 = at the high. Fills the bar from the side price is pushing toward.
@@ -465,15 +470,64 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var unit = Math.Max(last.Close * 1e-5, 1e-9);
         var pips = toFlip / unit;
         var fragile = pips < 3;
-        QuoteFlipText.Text = flat
-            ? "FLAT · arah belum terbentuk"
-            : $"jarak balik {pips:0.0} pip · {(fragile ? "RAPUH, mudah berbalik" : "arah cukup kuat")}"
-              + $" · H/L {FormatPrice(last.High)}/{FormatPrice(last.Low)}";
-        QuoteFlipText.Foreground = (Brush)new BrushConverter().ConvertFromString(fragile && !flat ? "#E7B65A" : "#9FB3CC")!;
+        var pipBrush = (Brush)new BrushConverter().ConvertFromString("#E7B65A")!;
+        var highBrush = (Brush)new BrushConverter().ConvertFromString("#F45B69")!;
+        var lowBrush = (Brush)new BrushConverter().ConvertFromString("#25C89A")!;
+        QuoteFlipText.Inlines.Clear();
+        QuoteFlipText.Inlines.Add(new System.Windows.Documents.Run("Jarak balik "));
+        QuoteFlipText.Inlines.Add(new System.Windows.Documents.Run($"{pips:0.0} pip") { Foreground = pipBrush });
+        QuoteFlipText.Inlines.Add(new System.Windows.Documents.Run(flat ? " · Candle datar, arah belum terbentuk · " : fragile ? " · Rapuh, mudah berbalik · " : " · Arah cukup kuat · ") { Foreground = flat || fragile ? pipBrush : (Brush)new BrushConverter().ConvertFromString("#9FB3CC")! });
+        QuoteFlipText.Inlines.Add(new System.Windows.Documents.Run($"H {FormatPrice(last.High)}") { Foreground = highBrush });
+        QuoteFlipText.Inlines.Add(new System.Windows.Documents.Run(" / "));
+        QuoteFlipText.Inlines.Add(new System.Windows.Documents.Run($"L {FormatPrice(last.Low)}") { Foreground = lowBrush });
 
         var age = BrokerNow() - lastTickTime;
-        QuoteTickAge.Text = lastTickTime <= 0 ? "—" : $"tick {age:0}s";
-        QuoteTickAge.Foreground = (Brush)new BrushConverter().ConvertFromString(age > 3 ? "#F45B69" : "#9FB3CC")!;
+        QuoteTickAge.Text = lastTickTime <= 0 ? "—" : $"Tick {age:0}s";
+        QuoteTickAge.Foreground = (Brush)new BrushConverter().ConvertFromString(age > 3 ? "#F45B69" : "#25C89A")!;
+    }
+
+    private void UpdateClosedCandleSignal(IReadOnlyList<Candle> candles)
+    {
+        const int duration = 60;
+        var now = BrokerNow();
+        Candle? closed = null;
+        if (candles.Count > 0)
+        {
+            var latest = candles[^1];
+            closed = now >= latest.Time + duration ? latest : candles.Count > 1 ? candles[^2] : null;
+        }
+
+        if (closed is null)
+        {
+            SetLiveCandleSignal($"{selectedSymbol}|NO_DATA", "NO TRADE");
+            return;
+        }
+
+        var key = $"{selectedSymbol}|{closed.Time:0}";
+        if (key == lastLiveSignalCandleKey) return;
+
+        var signal = "NO TRADE";
+        if (now < closed.Time + duration * 2)
+        {
+            var delta = closed.Close - closed.Open;
+            var pip = Math.Max(closed.Close * 1e-5, 1e-9);
+            if (Math.Abs(delta) / pip >= 3)
+                signal = delta > 0 ? "BUY" : delta < 0 ? "SELL" : "NO TRADE";
+        }
+        SetLiveCandleSignal(key, signal);
+    }
+
+    private void SetLiveCandleSignal(string key, string signal)
+    {
+        if (key == lastLiveSignalCandleKey) return;
+        lastLiveSignalCandleKey = key;
+        QuoteSignalText.Text = $"Signal: {signal}";
+        QuoteSignalText.Foreground = (Brush)new BrushConverter().ConvertFromString(signal switch
+        {
+            "BUY" => "#25C89A",
+            "SELL" => "#F45B69",
+            _ => "#E7B65A"
+        })!;
     }
 
     private void UpdateBinaryMetrics(Candle? last)
@@ -1139,7 +1193,11 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var connected = status.Equals("live", StringComparison.OrdinalIgnoreCase);
         var updating = status.Equals("updating", StringComparison.OrdinalIgnoreCase) || status.Equals("connecting", StringComparison.OrdinalIgnoreCase);
         ConnectionText.Text = connected ? "CONNECTED" : updating ? "UPDATING" : "DISCONNECTED";
-        LiveDot.Fill = new SolidColorBrush(connected ? Color.FromRgb(37, 200, 154) : updating ? Color.FromRgb(240, 185, 11) : Color.FromRgb(244, 91, 105));
+        var signalColor = connected ? Color.FromRgb(37, 200, 154) : updating ? Color.FromRgb(240, 185, 11) : Color.FromRgb(244, 91, 105);
+        SignalStatusText.Text = connected ? "RUNNING" : updating ? "SYNCING" : "OFFLINE";
+        SignalStatusText.Foreground = new SolidColorBrush(signalColor);
+        SignalStatusDot.Fill = new SolidColorBrush(signalColor);
+        LiveDot.Fill = new SolidColorBrush(signalColor);
         StatusText.Text = detail;
         ConnectionText.Opacity = 1;
         if (updating)

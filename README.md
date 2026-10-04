@@ -137,9 +137,10 @@ That's it — no `.env` file required to get a fully working terminal.
 The Windows build at `E:\JANGAN DI HAPUS\OpenTerminal` includes a read-only Pocket Option DEMO feed:
 
 - Realtime broker ticks and M1 OHLCV candles refresh every second.
+- LIVE CANDLE signal uses a completed M1 candle only: a body move of at least 3 normalized pips gives BUY/SELL; otherwise NO TRADE. The result stays fixed for the next M1 candle. Signals are read-only and never place orders.
 - Chart, quote, watchlist, and connection status use broker data; missing data stays visibly unavailable.
 - Status labels are `CONNECTED`, `UPDATING`, or `DISCONNECTED`; updating text blinks unless reduced motion is enabled.
-- Only DEMO sessions are accepted. BUY/SELL, deposit, withdrawal, and LIVE-account actions do not exist.
+- Only DEMO sessions are accepted. BUY/SELL signal labels are analysis only; order execution, deposit, withdrawal, and LIVE-account actions do not exist.
 - The broker SSID stays in the local ignored credential file. It is never returned by the API or rendered in the UI.
 - Desktop executable: `desktop\dist\OpenTerminal.exe`; web dashboard: `Jalankan-Web.cmd`; API manual: `Jalankan-API.cmd`.
 - The desktop app starts the local API through hidden `node.exe` only when needed. It does not open a `cmd.exe` window.

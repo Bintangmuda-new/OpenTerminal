@@ -28,3 +28,7 @@ __pycache__/
 pocket-live.json
 pocket-snapshot-sample.json
 _scratch/
+desktop/dist-*/
+desktop/run-*/
+data/market-favorites.txt
+desktop/obj/**/PublishOutputs.*.txt
