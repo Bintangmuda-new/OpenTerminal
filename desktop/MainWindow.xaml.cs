@@ -49,6 +49,8 @@ public partial class MainWindow : Window
     private double brokerOffset;
     private double lastTickTime;
     private string lastLiveSignalCandleKey = "";
+    private string lastStructureSignalCandleKey = "";
+    private string structureSignal = "NO TRADE";
     /// Locked entries keyed by candle time. Once written, never revised — that is
     /// what makes the arrow non-repainting even though it fires before the close.
     private readonly Dictionary<double, string> firedEntries = []; // legacy alias: first direction per candle time (arrow drawing)
@@ -534,8 +536,13 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
     {
         if (last is null || chartCandles.Count < 20)
         {
-            StructLevels.Text = "menunggu 20 candle";
-            StructReason.Text = "";
+            StructCandlePattern.Text = "Candle Pattern: menunggu data";
+            StructChartPattern.Text = "Chart Pattern: menunggu data";
+            StructTrend.Text = "Trend Now: menunggu data";
+            StructBos.Text = "Struktur B.O.S: menunggu data";
+            StructSupportResistance.Text = "Support/Resistance: menunggu data";
+            StructSignal.Text = "SIGNAL: NO TRADE";
+            StructSignal.Foreground = (Brush)new BrushConverter().ConvertFromString("#E7B65A")!;
             BinaryMomentumText.Text = "WAITING\nNeed 15 candles";
             BinaryTimingText.Text = "WAITING\nNo valid candle";
             return;
@@ -551,7 +558,9 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var range = (last.High - last.Low) / last.Close * 100;
         var duration = TimeframeMinutes() * 60;
         var remaining = SecondsLeftInCandle();
-        UpdateStructurePanel(last, structure, trend, slope, threshold, rsi);
+        var lastIsClosed = BrokerNow() >= chartCandles[^1].Time + TimeframeMinutes() * 60;
+        var closedCandles = chartCandles.Take(lastIsClosed ? chartCandles.Count : chartCandles.Count - 1).ToList();
+        UpdateStructurePanel(last, structure, trend, closedCandles);
         var atr = Atr(chartCandles.Take(Math.Max(1, chartCandles.Count - 1)).ToList(), 14);
         var ema9 = Ema(chartCandles.Select(candle => candle.Close), 9).LastOrDefault();
         var ema21 = Ema(chartCandles.Select(candle => candle.Close), 21).LastOrDefault();
@@ -608,56 +617,73 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         return "";
     }
 
-    /// Confluence score, NOT a win probability. Each factor votes ±1; the result
-    /// is normalised so BUY+SELL+NO TRADE = 100. Backtests on this feed found no
-    /// rule that beats chance, so the panel is labelled as agreement, not odds.
-    internal static (int Buy, int Sell, int Flat, string Reason) BiasScore(IReadOnlyList<(int Vote, string Label)> votes)
-    {
-        var buy = votes.Count(v => v.Vote > 0);
-        var sell = votes.Count(v => v.Vote < 0);
-        var total = Math.Max(votes.Count, 1);
-        var flat = total - buy - sell;
-        var reason = string.Join(" · ", votes.Where(v => v.Vote != 0).Select(v => v.Label));
-        return (buy * 100 / total, sell * 100 / total, 100 - buy * 100 / total - sell * 100 / total,
-            reason.Length == 0 ? "tidak ada faktor yang sejalan" : reason);
-    }
-
-    private void UpdateStructurePanel(Candle last, StructureAnalysis structure, string trend, double slope, double threshold, double rsi)
+    private void UpdateStructurePanel(Candle last, StructureAnalysis structure, string trend, IReadOnlyList<Candle> closedCandles)
     {
         var candlePattern = CandlePatternOf(chartCandles);
         var chartPattern = ChartPatternOf(structure.Swings);
-        var support = RecentLevels(structure.Swings, "L").LastOrDefault()?.Price ?? 0;
-        var resistance = RecentLevels(structure.Swings, "H").LastOrDefault()?.Price ?? 0;
+        var supportLevels = RecentLevels(structure.Swings, "L");
+        var resistanceLevels = RecentLevels(structure.Swings, "H");
+        var support = supportLevels.Where(level => level.Price <= last.Close).OrderByDescending(level => level.Price).FirstOrDefault()?.Price ?? supportLevels.FirstOrDefault()?.Price ?? 0;
+        var resistance = resistanceLevels.Where(level => level.Price >= last.Close).OrderBy(level => level.Price).FirstOrDefault()?.Price ?? resistanceLevels.FirstOrDefault()?.Price ?? 0;
         var unit = Math.Max(last.Close * 1e-5, 1e-9);
+        StructCandlePattern.Text = $"Candle Pattern: {(string.IsNullOrEmpty(candlePattern) ? "Netral" : candlePattern)}";
+        StructChartPattern.Text = $"Chart Pattern: {(string.IsNullOrEmpty(chartPattern) ? "Belum terbentuk" : chartPattern)}";
+        StructTrend.Text = $"Trend Now: {trend}";
         var bos = structure.BosEvents.LastOrDefault();
-
-        var votes = new List<(int, string)>
+        var bosAge = bos is null ? int.MaxValue : Math.Max(0, chartCandles.Count - 1 - bos.Index);
+        var bosText = bos is null ? "Belum ada" : $"{bos.Kind} {bos.Direction} · {bosAge} candle lalu{(bosAge > 5 ? " (lama)" : "")}";
+        StructBos.Text = $"Struktur B.O.S: {bosText}";
+        StructBos.Foreground = bos?.Direction == "UP" ? (Brush)new BrushConverter().ConvertFromString("#25C89A")! : bos?.Direction == "DOWN" ? (Brush)new BrushConverter().ConvertFromString("#F45B69")! : (Brush)new BrushConverter().ConvertFromString("#9FB3CC")!;
+        StructSupportResistance.Inlines.Clear();
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run("Support/Resistance: S "));
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run(support > 0 ? FormatPrice(support) : "—") { Foreground = (Brush)new BrushConverter().ConvertFromString("#25C89A")! });
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run(" ("));
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run($"{(support > 0 ? (last.Close - support) / unit : 0):+0;-0;0}") { Foreground = (Brush)new BrushConverter().ConvertFromString("#F0B90B")! });
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run(" pip) · R "));
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run(resistance > 0 ? FormatPrice(resistance) : "—") { Foreground = (Brush)new BrushConverter().ConvertFromString("#F45B69")! });
+        StructSupportResistance.Inlines.Add(new System.Windows.Documents.Run($" ({(resistance > 0 ? (resistance - last.Close) / unit : 0):+0;-0;0} pip)") { Foreground = (Brush)new BrushConverter().ConvertFromString("#F0B90B")! });
+        var signalKey = closedCandles.Count == 0 ? $"{selectedSymbol}|NO_CLOSED_CANDLE" : $"{selectedSymbol}|{closedCandles[^1].Time:0}";
+        if (signalKey != lastStructureSignalCandleKey)
         {
-            (structure.Trend == "UP" ? 1 : structure.Trend == "DOWN" ? -1 : 0, $"struktur {structure.Trend}"),
-            (slope > threshold ? 1 : slope < -threshold ? -1 : 0, slope > threshold ? "slope naik" : "slope turun"),
-            (rsi < 30 ? 1 : rsi > 70 ? -1 : 0, $"RSI {rsi:0}"),
-            (bos is null ? 0 : bos.Direction == "UP" ? 1 : -1, bos is null ? "" : $"{bos.Kind} {bos.Direction}"),
-            (candlePattern.Contains("Bullish") || candlePattern == "Hammer" ? 1 : candlePattern.Contains("Bearish") || candlePattern == "Shooting Star" ? -1 : 0, candlePattern),
-            (chartPattern == "Double Bottom" ? 1 : chartPattern == "Double Top" ? -1 : 0, chartPattern),
-        };
-        var (buy, sell, flat, reason) = BiasScore(votes);
+            lastStructureSignalCandleKey = signalKey;
+            structureSignal = closedCandles.Count >= 20 && BrokerNow() < closedCandles[^1].Time + TimeframeMinutes() * 120
+                ? EvaluateStructurePatternSignal(closedCandles)
+                : "NO TRADE";
+        }
+        StructSignal.Text = $"SIGNAL: {structureSignal} · NEXT M1 / CLOSE";
+        StructSignal.ToolTip = "Dihitung sekali dari candle M1 yang sudah close; berlaku hanya untuk candle M1 berikutnya sampai close.";
+        StructSignal.Foreground = (Brush)new BrushConverter().ConvertFromString(structureSignal switch { "BUY" => "#25C89A", "SELL" => "#F45B69", _ => "#E7B65A" })!;
+    }
 
-        var lead = buy > sell && buy > flat ? "BUY" : sell > buy && sell > flat ? "SELL" : "NO TRADE";
-        var pct = lead == "BUY" ? buy : lead == "SELL" ? sell : flat;
-        var colour = lead == "BUY" ? "#25C89A" : lead == "SELL" ? "#F45B69" : "#59728E";
-        var brush = (Brush)new BrushConverter().ConvertFromString(colour)!;
-        StructBiasText.Text = lead;
-        StructBiasText.Foreground = brush;
-        StructBiasPct.Text = $"{pct}%";
-        StructBiasPct.Foreground = brush;
-        StructBiasBar.Background = brush;
-        var track = ((FrameworkElement)StructBiasBar.Parent).ActualWidth;
-        StructBiasBar.Width = Math.Max(0, track * pct / 100.0);
-
-        StructBosAge.Text = bos is null ? "no BOS" : $"BOS {structure.Swings.Count} sw";
-        StructLevels.Text = $"R {(resistance > 0 ? $"{(resistance - last.Close) / unit:+0;-0}p" : "—")}   S {(support > 0 ? $"{(last.Close - support) / unit:+0;-0}p" : "—")}   {trend}";
-        var patterns = string.Join(" + ", new[] { candlePattern, chartPattern }.Where(p => p.Length > 0));
-        StructReason.Text = $"{(patterns.Length > 0 ? patterns + " · " : "")}{reason}\nskor konfluensi, bukan peluang menang";
+    private static string EvaluateStructurePatternSignal(IReadOnlyList<Candle> candles)
+    {
+        var last = candles[^1];
+        var structure = AnalyzeStructure(candles, candles.Count);
+        var candlePattern = CandlePatternOf(candles);
+        var chartPattern = ChartPatternOf(structure.Swings);
+        var closes = candles.TakeLast(20).Select(candle => candle.Close).ToArray();
+        var midline = closes.Average();
+        var meanX = (closes.Length - 1) / 2d;
+        var slope = closes.Select((close, index) => (index - meanX) * (close - midline)).Sum() / closes.Select((_, index) => (index - meanX) * (index - meanX)).Sum();
+        var threshold = Math.Max(Math.Abs(midline) * .00001, .00000001);
+        var trend = structure.Trend switch { "UP" => 1, "DOWN" => -1, _ => last.Close > midline + threshold && slope > threshold ? 1 : last.Close < midline - threshold && slope < -threshold ? -1 : 0 };
+        var candle = candlePattern.Contains("Bullish", StringComparison.OrdinalIgnoreCase) || candlePattern is "Hammer" or "Marubozu naik" ? 1
+            : candlePattern.Contains("Bearish", StringComparison.OrdinalIgnoreCase) || candlePattern is "Shooting Star" or "Marubozu turun" ? -1 : 0;
+        var chart = chartPattern == "Double Bottom" ? 1 : chartPattern == "Double Top" ? -1 : 0;
+        var supportLevels = RecentLevels(structure.Swings, "L");
+        var resistanceLevels = RecentLevels(structure.Swings, "H");
+        var support = supportLevels.Where(level => level.Price <= last.Close).OrderByDescending(level => level.Price).FirstOrDefault()?.Price ?? 0;
+        var resistance = resistanceLevels.Where(level => level.Price >= last.Close).OrderBy(level => level.Price).FirstOrDefault()?.Price ?? 0;
+        var unit = Math.Max(last.Close * 1e-5, 1e-9);
+        var nearSupport = support > 0 && Math.Abs(last.Close - support) / unit <= 8;
+        var nearResistance = resistance > 0 && Math.Abs(resistance - last.Close) / unit <= 8;
+        var level = nearSupport && last.Close > last.Open && last.Close >= support ? 1 : nearResistance && last.Close < last.Open && last.Close <= resistance ? -1 : 0;
+        var bos = structure.BosEvents.LastOrDefault();
+        var bosAge = bos is null ? int.MaxValue : candles.Count - 1 - bos.Index;
+        var votes = new[] { candle, chart, trend, bosAge > 5 ? 0 : bos?.Direction == "UP" ? 1 : bos?.Direction == "DOWN" ? -1 : 0, level };
+        var buyVotes = votes.Count(vote => vote > 0);
+        var sellVotes = votes.Count(vote => vote < 0);
+        return buyVotes >= 3 ? "BUY" : sellVotes >= 3 ? "SELL" : "NO TRADE";
     }
 
     private void UpdateMarketQuality(JsonElement feed, Candle? last)
