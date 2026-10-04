@@ -17,6 +17,7 @@ Executable distribusi: `desktop\dist\OpenTerminal.exe`.
 - Panah struktur digambar pada candle setelah break terkonfirmasi; panah adalah penanda analisis, bukan jaminan entry atau hasil.
 - Audit historis memisahkan marker: panah hanya untuk `BOS`; `CHoCH` tetap dianalisis tetapi tidak diberi panah karena hasil uji candle berikutnya lebih lemah.
 - Refresh UI dilakukan setiap satu detik dari tick broker DEMO; candle M1 diperbarui dari tick yang diterima.
+- Widget JURNAL menyimpan Saldo Awal, Target Profit, dan Stop Loss otomatis ke `OneDrive\Dokumen\JURNAL TRADING OPEN TERMINAL\JURNAL TRADING OPEN TERMINAL.xlsx`, satu baris per tanggal.
 - Saat pindah market, chart lama disembunyikan. Latar hitam dan `LOADING ...` tetap tampil sampai dua candle valid selesai dirender; respons market lama tidak boleh mengganti chart baru.
 - Kontrak ini sama untuk perubahan dari Codex, ChatGPT Desktop Work, maupun editor lain; rujuk `AGENTS.md` dan `STATUS.md` sebelum mengubah aplikasi.
 

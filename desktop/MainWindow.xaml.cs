@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Media;
 using System.Net.Http;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +29,7 @@ public partial class MainWindow : Window
     private readonly HttpClient http = new() { Timeout = TimeSpan.FromSeconds(20) };
     private readonly DispatcherTimer refreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly DispatcherTimer alertTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private readonly DispatcherTimer tradingJournalSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(600) };
     private readonly ObservableCollection<MarketRow> markets = [];
     private readonly List<MarketRow> allMarkets = [];
     private readonly HashSet<string> favoriteSymbols = new(StringComparer.OrdinalIgnoreCase);
@@ -51,6 +55,8 @@ public partial class MainWindow : Window
     private string lastLiveSignalCandleKey = "";
     private string lastStructureSignalCandleKey = "";
     private string structureSignal = "NO TRADE";
+    private string lastMomentumSignalCandleKey = "";
+    private string momentumSignal = "NO TRADE";
     /// Locked entries keyed by candle time. Once written, never revised — that is
     /// what makes the arrow non-repainting even though it fires before the close.
     private readonly Dictionary<double, string> firedEntries = []; // legacy alias: first direction per candle time (arrow drawing)
@@ -67,6 +73,8 @@ public partial class MainWindow : Window
         { CloseA = closeA; SL = sl; SH = sh; Support = support; Resistance = resistance; Pattern = pattern; }
     }
     private static readonly string JournalPath = System.IO.Path.Combine(Root, "data", "signal-journal.csv");
+    private static readonly string TradingJournalDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "OneDrive", "Dokumen", "JURNAL TRADING OPEN TERMINAL");
+    private static readonly string TradingJournalPath = System.IO.Path.Combine(TradingJournalDirectory, "JURNAL TRADING OPEN TERMINAL.xlsx");
     private static readonly string LegacyStructureMarksPath = System.IO.Path.Combine(Root, "data", "structure-marks.json");
     private readonly SlShStore slShStore = new(System.IO.Path.Combine(Root, "data"));
 
@@ -86,6 +94,7 @@ public partial class MainWindow : Window
         return (int)Math.Max(0, duration - BrokerNow() % duration);
     }
     private bool chartAlertsReady;
+    private bool loadingTradingJournal;
     private const string AlertSoundPath = @"Z:\MUSIC\Notifikasi\Bell Dor.wav";
     /// Minimum candles between signals. Matches the cooldown the rule was
     /// backtested with; changing it here invalidates that measurement.
@@ -95,6 +104,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        tradingJournalSaveTimer.Tick += (_, _) => SaveTradingJournalEntry();
+        TradingJournalDate.SelectedDate = DateTime.Today;
+        LoadTradingJournalEntry();
+        Closing += (_, _) => { if (tradingJournalSaveTimer.IsEnabled) SaveTradingJournalEntry(); };
         LoadFavorites();
         LoadStructureMarks();
 #if DEBUG
@@ -543,8 +556,10 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
             StructSupportResistance.Text = "Support/Resistance: menunggu data";
             StructSignal.Text = "SIGNAL: NO TRADE";
             StructSignal.Foreground = (Brush)new BrushConverter().ConvertFromString("#E7B65A")!;
-            BinaryMomentumText.Text = "WAITING\nNeed 15 candles";
-            BinaryTimingText.Text = "WAITING\nNo valid candle";
+            BinaryMomentumText.Text = "WAITING\nNeed 20 candles";
+            BinaryMomentumRemark.Text = "REM: menunggu data";
+            BinaryMomentumSignal.Text = "SIGNAL: NO TRADE";
+            BinaryMomentumSignal.Foreground = (Brush)new BrushConverter().ConvertFromString("#E7B65A")!;
             return;
         }
         var closes = chartCandles.TakeLast(20).Select(candle => candle.Close).ToArray();
@@ -556,16 +571,47 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var trend = structure.Trend switch { "UP" => "UPTREND", "DOWN" => "DOWNTREND", _ => last.Close > midline + threshold && slope > threshold ? "NAIK" : last.Close < midline - threshold && slope < -threshold ? "TURUN" : "RANGE" };
         var rsi = Rsi(chartCandles);
         var range = (last.High - last.Low) / last.Close * 100;
-        var duration = TimeframeMinutes() * 60;
-        var remaining = SecondsLeftInCandle();
         var lastIsClosed = BrokerNow() >= chartCandles[^1].Time + TimeframeMinutes() * 60;
         var closedCandles = chartCandles.Take(lastIsClosed ? chartCandles.Count : chartCandles.Count - 1).ToList();
         UpdateStructurePanel(last, structure, trend, closedCandles);
+        UpdateMomentumSignal(closedCandles);
         var atr = Atr(chartCandles.Take(Math.Max(1, chartCandles.Count - 1)).ToList(), 14);
         var ema9 = Ema(chartCandles.Select(candle => candle.Close), 9).LastOrDefault();
         var ema21 = Ema(chartCandles.Select(candle => candle.Close), 21).LastOrDefault();
-        BinaryMomentumText.Text = $"OHLC  {FormatPrice(last.Open)} / {FormatPrice(last.High)} / {FormatPrice(last.Low)} / {FormatPrice(last.Close)}\nRSI14  {rsi:0.0} · ATR14 {FormatPrice(atr)}\nEMA 9/21 {(ema9 > ema21 ? "UP" : ema9 < ema21 ? "DOWN" : "FLAT")} · RANGE {range:0.000}%";
-        BinaryTimingText.Text = $"{TimeframeLabel()} CLOSE\n{TimeSpan.FromSeconds(remaining):mm\\:ss} remaining\nBroker time basis";
+        BinaryMomentumText.Text = $"EMA 9/21 {(ema9 > ema21 ? "UP" : ema9 < ema21 ? "DOWN" : "FLAT")} · RSI14 {rsi:0.0}\nATR14 {FormatPrice(atr)} · RANGE {range:0.000}%";
+    }
+
+    private void UpdateMomentumSignal(IReadOnlyList<Candle> closedCandles)
+    {
+        var key = closedCandles.Count == 0 ? $"{selectedSymbol}|NO_MOMENTUM_DATA" : $"{selectedSymbol}|{closedCandles[^1].Time:0}";
+        if (key == lastMomentumSignalCandleKey) return;
+        lastMomentumSignalCandleKey = key;
+        var signal = "NO TRADE";
+        var remark = "REM: butuh 20 candle tertutup";
+        if (closedCandles.Count >= 20 && BrokerNow() < closedCandles[^1].Time + TimeframeMinutes() * 120)
+        {
+            var last = closedCandles[^1];
+            var closes = closedCandles.Select(candle => candle.Close).ToList();
+            var ema9 = Ema(closes, 9)[^1];
+            var ema21 = Ema(closes, 21)[^1];
+            var rsi = Rsi(closedCandles);
+            var atr = Atr(closedCandles, 14);
+            var range = last.High - last.Low;
+            var rangeAtr = atr > 0 ? range / atr : 0;
+            var emaDirection = ema9 > ema21 ? "UP" : ema9 < ema21 ? "DOWN" : "FLAT";
+            var rsiDirection = rsi >= 52 && rsi < 70 ? "BULL" : rsi <= 48 && rsi > 30 ? "BEAR" : rsi >= 70 ? "HIGH" : rsi <= 30 ? "LOW" : "NEUTRAL";
+            var candleDirection = last.Close > last.Open ? "UP" : last.Close < last.Open ? "DOWN" : "FLAT";
+            var rangeState = rangeAtr < .4 ? "QUIET" : rangeAtr > 2 ? "HIGH" : "NORMAL";
+            var validRange = atr > 0 && rangeAtr is >= .4 and <= 2;
+            if (validRange && emaDirection == "UP" && rsiDirection == "BULL" && candleDirection == "UP") signal = "BUY";
+            else if (validRange && emaDirection == "DOWN" && rsiDirection == "BEAR" && candleDirection == "DOWN") signal = "SELL";
+            remark = $"REM: EMA {emaDirection} · RSI {rsi:0} {rsiDirection} · Candle {candleDirection} · Range/ATR {rangeAtr:0.0} {rangeState}";
+        }
+        momentumSignal = signal;
+        BinaryMomentumRemark.Text = remark;
+        BinaryMomentumSignal.Text = $"SIGNAL: {signal}";
+        BinaryMomentumSignal.Foreground = (Brush)new BrushConverter().ConvertFromString(signal switch { "BUY" => "#25C89A", "SELL" => "#F45B69", _ => "#E7B65A" })!;
+        BinaryMomentumSignal.ToolTip = "Dihitung saat candle M1 close dari EMA 9/21, RSI 14, ATR 14, range, dan arah candle; berlaku untuk M1 berikutnya.";
     }
 
     /// Reads the candle's own shape. Realtime on purpose: the running candle is
@@ -823,10 +869,16 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         var last = shown[^1]; var marker = last.Close >= last.Open ? "#26CA9B" : "#F45B69";
         var liveLine = new Line { X1 = left, X2 = left + width, Y1 = Y(last.Close), Y2 = Y(last.Close), Stroke = (Brush)new BrushConverter().ConvertFromString(marker)!, StrokeThickness = 1.2, StrokeDashArray = [3, 2], Opacity = .95 };
         Panel.SetZIndex(liveLine, 11); PriceChart.Children.Add(liveLine);
-        var candleSeconds = TimeframeMinutes() * 60;
         var remainingSeconds = SecondsLeftInCandle();
         DrawStrategyArrows(shown, startIndex, X, Y);
-        AddText($"{FormatPrice(last.Close)}  {TimeSpan.FromSeconds(remainingSeconds):mm\\:ss}", left + width + 4, Y(last.Close) - 9, "#FFFFFF", 10, marker);
+        AddText(FormatPrice(last.Close), left + width + 4, Y(last.Close) - 9, "#FFFFFF", 10, marker);
+        var liveLocalIndex = chartCandles.Count - 1 - startIndex;
+        if (liveLocalIndex >= 0 && liveLocalIndex < shown.Count)
+        {
+            var liveCandle = shown[liveLocalIndex];
+            var timerY = Math.Clamp(Y(liveCandle.Close) - 9, top, top + height - 18);
+            AddPinnedText(TimeSpan.FromSeconds(remainingSeconds).ToString(@"mm\:ss"), X(liveLocalIndex) + candleWidth / 2 + 4, timerY, "#FFFFFF", 9, "#101722");
+        }
         if (SlShOverlayBox.IsChecked == true) foreach (var pivot in LockedStructureMarks().Where(pivot => pivot.Kind is "SL" or "SH").Where(pivot => pivot.Index >= startIndex && pivot.Index < startIndex + shown.Count))
         {
             var color = pivot.Kind == "SH" ? "#F8B84E" : "#4D9DFF";
@@ -1632,6 +1684,178 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
         try { Process.Start(new ProcessStartInfo(JournalPath) { UseShellExecute = true }); }
         catch (Exception error) { StatusText.Text = error.Message; }
     }
+
+    private void TradingJournalDate_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (!loadingTradingJournal) LoadTradingJournalEntry();
+    }
+
+    private void TradingJournalField_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (loadingTradingJournal) return;
+        TradingJournalSaveStatus.Text = "Perubahan belum tersimpan";
+        TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#E7B65A")!;
+        tradingJournalSaveTimer.Stop();
+        tradingJournalSaveTimer.Start();
+    }
+
+    private void TradingJournalField_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (tradingJournalSaveTimer.IsEnabled) SaveTradingJournalEntry();
+    }
+
+    private void LoadTradingJournalEntry()
+    {
+        if (TradingJournalDate.SelectedDate is not DateTime date) return;
+        loadingTradingJournal = true;
+        try
+        {
+            EnsureTradingJournalFile();
+            var saved = ReadTradingJournal().FirstOrDefault(entry => entry.Date == date.Date);
+            TradingJournalBalance.Text = FormatJournalAmount(saved?.Balance);
+            TradingJournalTarget.Text = FormatJournalAmount(saved?.Target);
+            TradingJournalStopLoss.Text = FormatJournalAmount(saved?.StopLoss);
+            TradingJournalSaveStatus.Text = saved is null ? "Isi nilai; perubahan tersimpan otomatis ke Excel." : "Catatan tanggal ini dimuat dari Excel.";
+            TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#9FB3CC")!;
+        }
+        catch (Exception error)
+        {
+            TradingJournalSaveStatus.Text = $"Gagal membuka jurnal: {error.Message}";
+            TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#F45B69")!;
+        }
+        finally { loadingTradingJournal = false; }
+    }
+
+    private void SaveTradingJournalEntry()
+    {
+        tradingJournalSaveTimer.Stop();
+        if (TradingJournalDate.SelectedDate is not DateTime date) return;
+        if (!TryParseJournalAmount(TradingJournalBalance.Text, out var balance) ||
+            !TryParseJournalAmount(TradingJournalTarget.Text, out var target) ||
+            !TryParseJournalAmount(TradingJournalStopLoss.Text, out var stopLoss))
+        {
+            TradingJournalSaveStatus.Text = "Nominal tidak valid. Periksa angka yang diisi.";
+            TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#F45B69")!;
+            return;
+        }
+        try
+        {
+            EnsureTradingJournalFile();
+            var tempPath = TradingJournalPath + ".tmp";
+            File.Copy(TradingJournalPath, tempPath, true);
+            using (var archive = ZipFile.Open(tempPath, ZipArchiveMode.Update))
+            {
+                var sheet = LoadJournalXml(archive, "xl/worksheets/sheet1.xml");
+                var ns = sheet.Root!.Name.Namespace;
+                var rows = sheet.Root.Element(ns + "sheetData")!.Elements(ns + "row").ToList();
+                var row = rows.FirstOrDefault(candidate => JournalRowDate(candidate, ns) == date.Date) ??
+                    rows.FirstOrDefault(candidate => (int?)candidate.Attribute("r") >= 5 && (int?)candidate.Attribute("r") <= 504 && JournalRowDate(candidate, ns) is null);
+                if (row is null)
+                {
+                    TradingJournalSaveStatus.Text = "Jurnal penuh (maksimal 500 tanggal).";
+                    TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#F45B69")!;
+                    File.Delete(tempPath);
+                    return;
+                }
+                var rowNumber = (int)row.Attribute("r")!;
+                SetJournalCell(row, ns, $"A{rowNumber}", balance is null && target is null && stopLoss is null ? null : date.ToOADate().ToString("0.########", CultureInfo.InvariantCulture));
+                SetJournalCell(row, ns, $"B{rowNumber}", balance?.ToString(CultureInfo.InvariantCulture));
+                SetJournalCell(row, ns, $"C{rowNumber}", target?.ToString(CultureInfo.InvariantCulture));
+                SetJournalCell(row, ns, $"D{rowNumber}", stopLoss?.ToString(CultureInfo.InvariantCulture));
+                var table = LoadJournalXml(archive, "xl/tables/table1.xml");
+                table.Root!.SetAttributeValue("ref", "A4:D504");
+                SaveJournalXml(archive, "xl/worksheets/sheet1.xml", sheet);
+                SaveJournalXml(archive, "xl/tables/table1.xml", table);
+            }
+            File.Move(tempPath, TradingJournalPath, true);
+            TradingJournalSaveStatus.Text = $"Tersimpan di Excel · {DateTime.Now:HH:mm:ss}";
+            TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#25C89A")!;
+        }
+        catch (Exception error)
+        {
+            var tempPath = TradingJournalPath + ".tmp";
+            if (File.Exists(tempPath)) try { File.Delete(tempPath); } catch { }
+            TradingJournalSaveStatus.Text = $"Gagal menyimpan: {error.Message}";
+            TradingJournalSaveStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#F45B69")!;
+        }
+    }
+
+    private void OpenTradingJournal_Click(object sender, RoutedEventArgs e)
+    {
+        try { EnsureTradingJournalFile(); Process.Start(new ProcessStartInfo(TradingJournalPath) { UseShellExecute = true }); }
+        catch (Exception error) { TradingJournalSaveStatus.Text = $"Gagal membuka Excel: {error.Message}"; }
+    }
+
+    private static void EnsureTradingJournalFile()
+    {
+        if (File.Exists(TradingJournalPath)) return;
+        Directory.CreateDirectory(TradingJournalDirectory);
+        var template = System.IO.Path.Combine(AppContext.BaseDirectory, "assets", "trading-journal-template.xlsx");
+        if (!File.Exists(template)) throw new FileNotFoundException("Template Excel jurnal tidak ditemukan.", template);
+        File.Copy(template, TradingJournalPath);
+    }
+
+    private static List<TradingJournalRow> ReadTradingJournal()
+    {
+        EnsureTradingJournalFile();
+        using var archive = ZipFile.OpenRead(TradingJournalPath);
+        var sheet = LoadJournalXml(archive, "xl/worksheets/sheet1.xml");
+        var ns = sheet.Root!.Name.Namespace;
+        return sheet.Root.Element(ns + "sheetData")!.Elements(ns + "row")
+            .Select(row => new TradingJournalRow((int?)row.Attribute("r") ?? 0, JournalRowDate(row, ns), JournalCellAmount(row, ns, "B"), JournalCellAmount(row, ns, "C"), JournalCellAmount(row, ns, "D")))
+            .Where(row => row.Date is not null).ToList();
+    }
+
+    private static DateTime? JournalRowDate(XElement row, XNamespace ns)
+    {
+        var value = row.Elements(ns + "c").FirstOrDefault(cell => ((string?)cell.Attribute("r"))?.StartsWith("A", StringComparison.Ordinal) == true)?.Element(ns + "v")?.Value;
+        return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var serial) ? DateTime.FromOADate(serial).Date : null;
+    }
+
+    private static decimal? JournalCellAmount(XElement row, XNamespace ns, string column)
+    {
+        var value = row.Elements(ns + "c").FirstOrDefault(cell => ((string?)cell.Attribute("r"))?.StartsWith(column, StringComparison.Ordinal) == true)?.Element(ns + "v")?.Value;
+        return decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount) ? amount : null;
+    }
+
+    private static string FormatJournalAmount(decimal? amount) => amount?.ToString("0.##", CultureInfo.CurrentCulture) ?? "";
+
+    private static bool TryParseJournalAmount(string text, out decimal? amount)
+    {
+        amount = null;
+        if (string.IsNullOrWhiteSpace(text)) return true;
+        if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out var parsed) || decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out parsed))
+        { amount = parsed; return true; }
+        return false;
+    }
+
+    private static XDocument LoadJournalXml(ZipArchive archive, string path)
+    {
+        var entry = archive.GetEntry(path) ?? throw new InvalidDataException($"Bagian Excel tidak ditemukan: {path}");
+        using var stream = entry.Open();
+        return XDocument.Load(stream);
+    }
+
+    private static void SaveJournalXml(ZipArchive archive, string path, XDocument document)
+    {
+        archive.GetEntry(path)?.Delete();
+        var entry = archive.CreateEntry(path, CompressionLevel.Optimal);
+        using var stream = entry.Open();
+        document.Save(stream);
+    }
+
+    private static void SetJournalCell(XElement row, XNamespace ns, string address, string? value)
+    {
+        var cell = row.Elements(ns + "c").FirstOrDefault(candidate => (string?)candidate.Attribute("r") == address);
+        if (cell is null) { cell = new XElement(ns + "c", new XAttribute("r", address)); row.Add(cell); }
+        cell.Attribute("t")?.Remove();
+        var existing = cell.Element(ns + "v");
+        if (value is null) existing?.Remove();
+        else if (existing is null) cell.Add(new XElement(ns + "v", value));
+        else existing.Value = value;
+    }
+
+    private sealed record TradingJournalRow(int Row, DateTime? Date, decimal? Balance, decimal? Target, decimal? StopLoss);
 
     private void PushChartAlert(string kind, string direction, double candleTime, string extra = "", bool force = false)    {
         var timeLabel = DateTimeOffset.FromUnixTimeSeconds((long)candleTime).LocalDateTime.ToString("HH:mm");
