@@ -650,7 +650,7 @@ var closed = !feed.TryGetProperty("ticks", out var ticks) || !ticks.TryGetProper
                 ? EvaluateStructurePatternSignal(closedCandles)
                 : "NO TRADE";
         }
-        StructSignal.Text = $"SIGNAL: {structureSignal} · NEXT M1 / CLOSE";
+        StructSignal.Text = $"SIGNAL: {structureSignal}";
         StructSignal.ToolTip = "Dihitung sekali dari candle M1 yang sudah close; berlaku hanya untuk candle M1 berikutnya sampai close.";
         StructSignal.Foreground = (Brush)new BrushConverter().ConvertFromString(structureSignal switch { "BUY" => "#25C89A", "SELL" => "#F45B69", _ => "#E7B65A" })!;
     }
