@@ -1,0 +1,13 @@
+cell,segment,n,win,wr,lb95
+ote_only,train,28449,14267,50.149,49.568
+ote_only,hold,19174,9721,50.699,49.991
+ote_only,lock,32057,15976,49.836,49.289
+ote_choch,train,5200,2839,54.596,53.24
+ote_choch,hold,3659,2020,55.206,53.59
+ote_choch,lock,5890,3275,55.603,54.331
+choch_only,train,83753,43098,51.458,51.12
+choch_only,hold,58111,29915,51.479,51.073
+choch_only,lock,96038,49348,51.384,51.068
+neither,train,137360,67416,49.08,48.815
+neither,hold,90377,44195,48.901,48.575
+neither,lock,148155,72801,49.138,48.884

@@ -1,0 +1,35 @@
+:root {
+  /* Extracted from desktop/MainWindow.xaml. */
+  --bg-1: #000000;
+  --fg-1: #e7edf5;
+  --fg-2: #9fb3cc;
+  --fg-3: #9aa9b8;
+  --accent-1: #f0b90b;
+  --accent-2: #25c89a;
+  --positive: #25c89a;
+  --negative: #f45b69;
+  --warning: #e7b65a;
+  --border-subtle: #2a313b;
+  --border-track: #16202e;
+  --surface-primary: var(--bg-1);
+  --text-primary: var(--fg-1);
+  --text-secondary: var(--fg-2);
+  --font-ui: "Segoe UI", sans-serif;
+  --font-data: "Consolas", monospace;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --size-caption: 9px;
+  --size-widget-title: 10px;
+  --size-body: 11px;
+  --size-market-quote: 26px;
+  --caption: var(--weight-regular) var(--size-caption) var(--font-data);
+  --widget-title: var(--weight-bold) var(--size-widget-title) var(--font-ui);
+  --body: var(--weight-regular) var(--size-body) var(--font-ui);
+  --quote: var(--weight-bold) var(--size-market-quote) var(--font-data);
+  --radius-control: 3px;
+  --radius-panel: 5px;
+  --space-1: 3px;
+  --space-2: 6px;
+  --space-3: 12px;
+}

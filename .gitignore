@@ -32,3 +32,18 @@ desktop/dist-*/
 desktop/run-*/
 data/market-favorites.txt
 desktop/obj/**/PublishOutputs.*.txt
+
+# .NET build artifacts (jangan pernah di-commit)
+desktop/bin/
+desktop/obj/
+desktop/dist/
+desktop/dist-*/
+bin/
+obj/
+*.dll
+*.pdb
+*.exe.config
+
+# Cache riset (besar, bisa dibangun ulang)
+_smc_lab/*.npz
+_smc_lab/cache*/

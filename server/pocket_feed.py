@@ -45,6 +45,7 @@ class Feed:
         self.candles = {}
         self.candle_times = {}
         self.resub_times = {}
+        self.demo_deals = {}
         self.lock = asyncio.Lock()
 
     async def connect(self) -> None:
@@ -120,23 +121,62 @@ class Feed:
                 result[symbol] = {"direction": "UP" if closes[-1] >= sum(closes) / len(closes) else "DOWN"}
         return result
 
-    async def snapshot(self, symbol: str) -> dict:
+    async def snapshot(self, symbol: str, symbols=None) -> dict:
         requested_symbol = symbol.strip()
+        # NEXT widget watchlist (2026-11-06): optional extra symbols whose M1
+        # history should also be loaded. Bounded to 10, DEMO assets only.
+        # Without this parameter the response is exactly the old single-symbol
+        # shape, so existing clients are unaffected.
+        extra_symbols = []
+        if isinstance(symbols, list):
+            for item in symbols:
+                name = str(item).strip()
+                if name and name != requested_symbol and name in self.assets and name not in extra_symbols:
+                    extra_symbols.append(name)
+                if len(extra_symbols) >= 10:
+                    break
+        requested_symbols = [requested_symbol] + extra_symbols if requested_symbol else extra_symbols
         async with self.lock:
             # Ticks for a symbol can stop without the socket dropping, which froze the chart on
             # stale candles forever. Re-subscribe and refetch while it is the one being watched.
-            if requested_symbol in self.assets:
-                stale = time.time() - self.tick_times.get(requested_symbol, 0) > 15
-                if not self.candles.get(requested_symbol) or stale:
-                    asyncio.create_task(self.load_candles(requested_symbol))
-                if stale:
-                    asyncio.create_task(self.resubscribe(requested_symbol))
-        markets = [{"symbol": asset.symbol, "name": asset.name or asset.symbol, "group": group_for(asset)} for asset in self.assets.values()]
+            for name in requested_symbols:
+                if name in self.assets:
+                    stale = time.time() - self.tick_times.get(name, 0) > 15
+                    if not self.candles.get(name) or stale:
+                        asyncio.create_task(self.load_candles(name))
+                    if stale:
+                        asyncio.create_task(self.resubscribe(name))
+        # Payout/active come from the client's live updateAssets map; self.assets is only the connect-time list.
+        live_assets = {asset.symbol: asset for asset in self.client.assets()}
+        markets = []
+        for asset in self.assets.values():
+            current = live_assets.get(asset.symbol, asset)
+            markets.append({"symbol": asset.symbol, "name": asset.name or asset.symbol, "group": group_for(asset), "payout": int(current.payout or 0), "active": bool(current.is_active)})
         live_symbols = [name for name, seen in self.tick_times.items() if time.time() - seen < 10]
-        return {"mode": "DEMO", "status": self.status(), "receivedAt": int(time.time() * 1000), "markets": markets, "liveSymbols": live_symbols, "ticks": self.ticks, "candles": {requested_symbol: self.candles.get(requested_symbol, [])}, "trends": self.trends()}
+        balance = self.client.balance
+        return {"mode": "DEMO", "status": self.status(), "receivedAt": int(time.time() * 1000), "balance": float(balance.balance) if balance and math.isfinite(balance.balance) else None, "currency": "USD", "markets": markets, "liveSymbols": live_symbols, "ticks": self.ticks, "candles": {name: self.candles.get(name, []) for name in requested_symbols}, "trends": self.trends()}
 
     async def close(self) -> None:
         await self.client.close()
+
+    async def place_demo_order(self, asset: str, direction: str, amount: float, expiration: int) -> dict:
+        if not self.client.is_demo:
+            raise RuntimeError("DEMO order rejected: session is not DEMO")
+        deal = await self.client.buy(asset, direction, amount, expiration)
+        self.demo_deals[deal.request_id] = deal
+        return {"request_id": deal.request_id, "id": deal.id, "asset": deal.asset,
+                "direction": deal.direction.value, "amount": deal.amount,
+                "open_price": deal.open_price, "expiration": expiration}
+
+    async def wait_demo_result(self, request_id: int) -> dict:
+        deal = self.demo_deals.get(request_id)
+        if deal is None:
+            raise RuntimeError("Unknown DEMO order request_id")
+        result = await self.client.result(deal)
+        self.demo_deals.pop(request_id, None)
+        return {"request_id": request_id, "asset": result.asset,
+                "won": result.won, "profit": result.profit,
+                "open_price": result.open_price, "close_price": result.close_price}
 
 
 async def main() -> None:
@@ -154,7 +194,19 @@ async def main() -> None:
                 break
             request = json.loads(line)
             if request.get("type") == "snapshot":
-                emit({"id": request.get("id"), "ok": True, "snapshot": await feed.snapshot(request.get("symbol", ""))})
+                emit({"id": request.get("id"), "ok": True, "snapshot": await feed.snapshot(request.get("symbol", ""), request.get("symbols"))})
+            elif request.get("type") == "buy":
+                try:
+                    result = await feed.place_demo_order(str(request["asset"]), str(request["direction"]), float(request["amount"]), int(request["expiration"]))
+                    emit({"id": request.get("id"), "ok": True, "result": result})
+                except Exception as error:
+                    emit({"id": request.get("id"), "ok": False, "error": str(error)[:240]})
+            elif request.get("type") == "result":
+                try:
+                    result = await feed.wait_demo_result(int(request["request_id"]))
+                    emit({"id": request.get("id"), "ok": True, "result": result})
+                except Exception as error:
+                    emit({"id": request.get("id"), "ok": False, "error": str(error)[:240]})
     finally:
         await feed.close()
 

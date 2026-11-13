@@ -1,0 +1,26 @@
+{
+  "generated": "2026-11-11T00:00:00+07:00",
+  "sections": [
+    {
+      "id": "mockups",
+      "label": "Mockups",
+      "groups": []
+    },
+    {
+      "id": "design-systems",
+      "label": "Design Systems",
+      "groups": [
+        {
+          "slug": "product",
+          "files": [
+            { "label": "README.md", "path": "design-systems/product/README.md" },
+            { "label": "SKILL.md", "path": "design-systems/product/SKILL.md" },
+            { "label": "voice-and-tone.md", "path": "design-systems/product/brand/voice-and-tone.md" },
+            { "label": "style-notes.md", "path": "design-systems/product/brand/style-notes.md" },
+            { "label": "colors_and_type.css", "path": "design-systems/product/tokens/colors_and_type.css" }
+          ]
+        }
+      ]
+    }
+  ]
+}

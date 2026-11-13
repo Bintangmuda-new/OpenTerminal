@@ -1,2 +1,3 @@
 @echo off
-start "OpenTerminal Watchdog" /b powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Watch-OpenTerminal.ps1"
+cd /d "%~dp0"
+call "%~dp0Jalankan-App.cmd"

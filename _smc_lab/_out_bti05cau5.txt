@@ -1,0 +1,140 @@
+
+==============================================================================
+KANDIDAT CALL p=2 fvg+ote  (total 1,236 sinyal)
+==============================================================================
+  TRAIN    n=   454  WR= 56.39%  lb95=51.79
+  HOLDOUT  n=   338  WR= 64.50%  lb95=59.26
+  LOCKBOX  n=   430  WR= 60.93%  lb95=56.24
+
+  simbol (n>=20): 7/9 winrate > 50%
+    CADCHF_otc   n=  20 WR= 80.0%
+    #MSFT_otc    n=  22 WR= 72.7%
+    SARCNY_otc   n=  20 WR= 70.0%
+    #AXP_otc     n=  30 WR= 66.7%
+    #BA_otc      n=  20 WR= 60.0%
+    #JNJ_otc     n=  20 WR= 60.0%
+
+  per hari:
+    hari 0: n=   10 WR= 60.0%
+    hari 1: n=    2 WR=100.0%
+    hari 2: n=   20 WR= 60.0%
+    hari 3: n=   38 WR= 47.4%
+    hari 4: n=   56 WR= 60.7%
+    hari 5: n=  328 WR= 56.1%
+    hari 6: n=  338 WR= 64.5%
+    hari 7: n=  430 WR= 60.9%
+
+  kontrol: selalu CALL=60.23% · selalu PUT=39.77%  (edge +10.23pt)
+  null p95=60.23%  vs sinyal asli 60.23% TIDAK LOLOS
+
+==============================================================================
+KANDIDAT CALL p=2 sweep+ote  (total 1,836 sinyal)
+==============================================================================
+  TRAIN    n=   638  WR= 56.11%  lb95=52.24
+  HOLDOUT  n=   468  WR= 54.27%  lb95=49.74
+  LOCKBOX  n=   716  WR= 63.13%  lb95=59.53
+
+  simbol (n>=20): 16/22 winrate > 50%
+    YERUSD_otc   n=  26 WR= 76.9%
+    AUDUSD_otc   n=  22 WR= 72.7%
+    #JNJ_otc     n=  36 WR= 72.2%
+    MARA_otc     n=  20 WR= 70.0%
+    VIX_otc      n=  20 WR= 70.0%
+    #FB_otc      n=  30 WR= 66.7%
+
+  per hari:
+    hari 0: n=   22 WR= 81.8%
+    hari 1: n=    6 WR= 33.3%
+    hari 2: n=   42 WR= 66.7%
+    hari 3: n=   82 WR= 51.2%
+    hari 4: n=   88 WR= 59.1%
+    hari 5: n=  398 WR= 54.3%
+    hari 6: n=  468 WR= 54.3%
+    hari 7: n=  716 WR= 63.1%
+
+  kontrol: selalu CALL=58.40% · selalu PUT=41.60%  (edge +8.40pt)
+  null p95=58.40%  vs sinyal asli 58.40% TIDAK LOLOS
+
+==============================================================================
+KANDIDAT CALL p=1 eqh+ote  (total 1,628 sinyal)
+==============================================================================
+  TRAIN    n=   596  WR= 50.34%  lb95=46.33
+  HOLDOUT  n=   402  WR= 58.21%  lb95=53.33
+  LOCKBOX  n=   606  WR= 59.41%  lb95=55.45
+
+  simbol (n>=20): 13/18 winrate > 50%
+    BCHEUR       n=  26 WR= 76.9%
+    #MSFT_otc    n=  24 WR= 75.0%
+    BCHGBP       n=  30 WR= 66.7%
+    UAHUSD_otc   n=  24 WR= 66.7%
+    USDCNH_otc   n=  28 WR= 64.3%
+    BITB_otc     n=  22 WR= 63.6%
+
+  per hari:
+    hari 0: n=   32 WR= 56.2%
+    hari 2: n=   20 WR= 30.0%
+    hari 3: n=   66 WR= 45.5%
+    hari 4: n=   94 WR= 48.9%
+    hari 5: n=  384 WR= 52.1%
+    hari 6: n=  402 WR= 58.2%
+    hari 7: n=  606 WR= 59.4%
+
+  kontrol: selalu CALL=55.74% · selalu PUT=44.26%  (edge +5.74pt)
+  null p95=55.74%  vs sinyal asli 55.74% TIDAK LOLOS
+
+==============================================================================
+KANDIDAT CALL p=2 h1+ote  (total 7,926 sinyal)
+==============================================================================
+  TRAIN    n= 2,740  WR= 55.04%  lb95=53.17
+  HOLDOUT  n= 1,952  WR= 54.00%  lb95=51.78
+  LOCKBOX  n= 3,136  WR= 56.06%  lb95=54.32
+
+  simbol (n>=20): 86/122 winrate > 50%
+    QARCNY_otc   n=  30 WR= 80.0%
+    USDINR_otc   n=  40 WR= 75.0%
+    YERUSD_otc   n=  72 WR= 75.0%
+    JPN225_otc   n=  38 WR= 73.7%
+    UAHUSD_otc   n=  44 WR= 72.7%
+    GBPJPY       n=  28 WR= 71.4%
+
+  per hari:
+    hari 0: n=  164 WR= 59.8%
+    hari 2: n=  102 WR= 51.0%
+    hari 3: n=  354 WR= 52.5%
+    hari 4: n=  464 WR= 54.7%
+    hari 5: n=1,656 WR= 55.4%
+    hari 6: n=1,952 WR= 54.0%
+    hari 7: n=3,136 WR= 56.1%
+
+  kontrol: selalu CALL=55.19% · selalu PUT=44.81%  (edge +5.19pt)
+  null p95=55.19%  vs sinyal asli 55.19% TIDAK LOLOS
+
+==============================================================================
+KANDIDAT CALL p=1 ob+ote  (total 2,382 sinyal)
+==============================================================================
+  TRAIN    n=   790  WR= 52.28%  lb95=48.79
+  HOLDOUT  n=   568  WR= 58.80%  lb95=54.71
+  LOCKBOX  n=   987  WR= 57.14%  lb95=54.03
+
+  simbol (n>=20): 28/46 winrate > 50%
+    UAHUSD_otc   n=  24 WR= 83.3%
+    E35EUR_otc   n=  30 WR= 80.0%
+    AVAX_otc     n=  24 WR= 75.0%
+    USDEGP_otc   n=  24 WR= 75.0%
+    EURRUB_otc   n=  30 WR= 73.3%
+    #MCD_otc     n=  32 WR= 71.9%
+
+  per hari:
+    hari 0: n=   40 WR= 52.5%
+    hari 1: n=    2 WR=  0.0%
+    hari 2: n=   34 WR= 52.9%
+    hari 3: n=  121 WR= 48.8%
+    hari 4: n=  105 WR= 42.9%
+    hari 5: n=  488 WR= 55.3%
+    hari 6: n=  568 WR= 58.8%
+    hari 7: n=  987 WR= 57.1%
+
+  kontrol: selalu CALL=55.91% · selalu PUT=44.09%  (edge +5.91pt)
+  null p95=55.91%  vs sinyal asli 55.91% TIDAK LOLOS
+
+[exited with code 0]

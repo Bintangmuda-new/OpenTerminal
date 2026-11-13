@@ -1,0 +1,22 @@
+memuat cache...
+simbol=142
+
+A. CHoCH seperti aplikasi (C# apa adanya)
+  train    CALL n=  31,529  WR= 49.79%
+  train    PUT  n=  51,076  WR= 50.09%
+  holdout  CALL n=  57,752  WR= 49.56%
+  holdout  PUT  n=  92,646  WR= 49.91%
+
+B. CHoCH kanonik (backtest26)
+  train    CALL n=  60,074  WR= 49.82%
+  train    PUT  n=  59,524  WR= 49.99%
+  holdout  CALL n= 108,537  WR= 49.73%
+  holdout  PUT  n= 108,032  WR= 49.85%
+
+C. CHoCH diperbaiki (lowerHigh = pivotHigh, simetris)
+  train    CALL n=  46,018  WR= 49.85%
+  train    PUT  n=  51,076  WR= 50.09%
+  holdout  CALL n=  83,191  WR= 49.62%
+  holdout  PUT  n=  92,646  WR= 49.91%
+
+[exited with code 0]

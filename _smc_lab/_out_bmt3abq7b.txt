@@ -1,0 +1,86 @@
+sinyal dimuat: 1,013,216  simbol=142
+hari: [np.int16(0), np.int16(1), np.int16(2), np.int16(3), np.int16(4), np.int16(5), np.int16(6), np.int16(7)]
+total kombinasi dievaluasi: 716
+
+====================================================================================================
+TOP 20 menurut TRAIN — angka holdout ditampilkan sebagai ujian (bukan untuk memilih)
+====================================================================================================
+dir   p disp gate                                        n_tr   WR_tr   n_ho   WR_ho   lb95
+PUT   1  1.5 h1+sweep+bos                                 278  58.99%    534  48.13%  43.92
+PUT   1  2.0 h1+sweep+bos                                 278  58.99%    534  48.13%  43.92
+CALL  2  1.5 fvg+ote+tier                                 200  58.00%    384  62.50%  57.56
+CALL  2  2.0 fvg+ote+tier                                 200  58.00%    384  62.50%  57.56
+CALL  2  1.5 sweep+ote+tier                               279  57.71%    592  59.63%  55.63
+CALL  2  2.0 sweep+ote+tier                               279  57.71%    592  59.63%  55.63
+CALL  2  1.5 fvg+ote                                      227  56.39%    384  62.50%  57.56
+CALL  2  2.0 fvg+ote                                      227  56.39%    384  62.50%  57.56
+CALL  2  1.5 sweep+ote                                    319  56.11%    592  59.63%  55.63
+CALL  2  2.0 sweep+ote                                    319  56.11%    592  59.63%  55.63
+PUT   2  1.5 h1+ob+bos                                    599  56.09%  1,114  51.44%  48.50
+CALL  1  1.5 sweep+ote+tier                               345  55.94%    728  52.61%  48.98
+CALL  1  2.0 sweep+ote+tier                               345  55.94%    728  52.61%  48.98
+CALL  1  1.5 sweep+ote                                    366  55.74%    728  52.61%  48.98
+CALL  1  2.0 sweep+ote                                    366  55.74%    728  52.61%  48.98
+CALL  2  1.5 sweep+fvg+dsp                                265  55.47%    513  51.66%  47.34
+CALL  2  1.5 h1+ote                                     1,370  55.04%  2,544  55.27%  53.33
+CALL  2  2.0 h1+ote                                     1,370  55.04%  2,544  55.27%  53.33
+CALL  2  1.5 h1+ote+tier                                1,255  54.98%  2,544  55.27%  53.33
+CALL  2  2.0 h1+ote+tier                                1,255  54.98%  2,544  55.27%  53.33
+
+====================================================================================================
+TOP 20 menurut HOLDOUT (yang benar-benar bertahan di data baru)
+====================================================================================================
+dir   p disp gate                                        n_tr   WR_tr   n_ho   WR_ho   lb95
+CALL  2  1.5 fvg+ote                                      227  56.39%    384  62.50%  57.56
+CALL  2  1.5 fvg+ote+tier                                 200  58.00%    384  62.50%  57.56
+CALL  2  2.0 fvg+ote                                      227  56.39%    384  62.50%  57.56
+CALL  2  2.0 fvg+ote+tier                                 200  58.00%    384  62.50%  57.56
+CALL  2  1.5 sweep+ote                                    319  56.11%    592  59.63%  55.63
+CALL  2  1.5 sweep+ote+tier                               279  57.71%    592  59.63%  55.63
+CALL  2  2.0 sweep+ote                                    319  56.11%    592  59.63%  55.63
+CALL  2  2.0 sweep+ote+tier                               279  57.71%    592  59.63%  55.63
+CALL  1  1.5 eqh+ote                                      298  50.34%    504  58.93%  54.58
+CALL  1  1.5 eqh+ote+tier                                 280  48.93%    504  58.93%  54.58
+CALL  1  2.0 eqh+ote                                      298  50.34%    504  58.93%  54.58
+CALL  1  2.0 eqh+ote+tier                                 280  48.93%    504  58.93%  54.58
+CALL  1  2.0 ob+ote                                       343  52.77%    690  58.41%  54.69
+CALL  1  2.0 ob+ote+tier                                  321  52.02%    690  58.41%  54.69
+CALL  2  1.5 eqh+ote                                      207  47.83%    348  58.05%  52.80
+CALL  2  2.0 eqh+ote                                      207  47.83%    348  58.05%  52.80
+CALL  1  1.5 ob+ote                                       447  51.90%    865  57.23%  53.90
+CALL  1  1.5 ob+ote+tier                                  422  50.95%    865  57.23%  53.90
+CALL  2  2.0 ob+ote                                       348  47.41%    732  56.42%  52.80
+CALL  2  2.0 ob+ote+tier                                  312  46.79%    732  56.42%  52.80
+
+====================================================================================================
+LOLOS SEMUA SYARAT (train>50, hold>50, lb95>50, n_hold>=300): 118
+====================================================================================================
+CALL p=2 disp=1.5 fvg+ote                                  n=   384 WR_ho= 62.50% lb95= 57.56 (train 56.39%)
+CALL p=2 disp=1.5 fvg+ote+tier                             n=   384 WR_ho= 62.50% lb95= 57.56 (train 58.00%)
+CALL p=2 disp=2.0 fvg+ote                                  n=   384 WR_ho= 62.50% lb95= 57.56 (train 56.39%)
+CALL p=2 disp=2.0 fvg+ote+tier                             n=   384 WR_ho= 62.50% lb95= 57.56 (train 58.00%)
+CALL p=2 disp=1.5 sweep+ote                                n=   592 WR_ho= 59.63% lb95= 55.63 (train 56.11%)
+CALL p=2 disp=1.5 sweep+ote+tier                           n=   592 WR_ho= 59.63% lb95= 55.63 (train 57.71%)
+CALL p=2 disp=2.0 sweep+ote                                n=   592 WR_ho= 59.63% lb95= 55.63 (train 56.11%)
+CALL p=2 disp=2.0 sweep+ote+tier                           n=   592 WR_ho= 59.63% lb95= 55.63 (train 57.71%)
+CALL p=1 disp=2.0 ob+ote                                   n=   690 WR_ho= 58.41% lb95= 54.69 (train 52.77%)
+CALL p=1 disp=2.0 ob+ote+tier                              n=   690 WR_ho= 58.41% lb95= 54.69 (train 52.02%)
+CALL p=1 disp=1.5 eqh+ote                                  n=   504 WR_ho= 58.93% lb95= 54.58 (train 50.34%)
+CALL p=1 disp=2.0 eqh+ote                                  n=   504 WR_ho= 58.93% lb95= 54.58 (train 50.34%)
+CALL p=2 disp=1.5 ote                                      n= 4,728 WR_ho= 55.71% lb95= 54.29 (train 53.75%)
+CALL p=2 disp=1.5 ote+tier                                 n= 4,728 WR_ho= 55.71% lb95= 54.29 (train 53.48%)
+CALL p=2 disp=2.0 ote                                      n= 4,728 WR_ho= 55.71% lb95= 54.29 (train 53.75%)
+CALL p=2 disp=2.0 ote+tier                                 n= 4,728 WR_ho= 55.71% lb95= 54.29 (train 53.48%)
+CALL p=1 disp=1.5 ob+ote                                   n=   865 WR_ho= 57.23% lb95= 53.90 (train 51.90%)
+CALL p=1 disp=1.5 ob+ote+tier                              n=   865 WR_ho= 57.23% lb95= 53.90 (train 50.95%)
+CALL p=1 disp=1.5 ote                                      n= 5,812 WR_ho= 55.14% lb95= 53.86 (train 53.13%)
+CALL p=1 disp=1.5 ote+tier                                 n= 5,812 WR_ho= 55.14% lb95= 53.86 (train 52.51%)
+CALL p=1 disp=2.0 ote                                      n= 5,812 WR_ho= 55.14% lb95= 53.86 (train 53.13%)
+CALL p=1 disp=2.0 ote+tier                                 n= 5,812 WR_ho= 55.14% lb95= 53.86 (train 52.51%)
+CALL p=1 disp=1.5 h1+ote                                   n= 2,884 WR_ho= 55.24% lb95= 53.42 (train 53.29%)
+CALL p=1 disp=1.5 h1+ote+tier                              n= 2,884 WR_ho= 55.24% lb95= 53.42 (train 52.88%)
+CALL p=1 disp=2.0 h1+ote                                   n= 2,884 WR_ho= 55.24% lb95= 53.42 (train 53.29%)
+
+CSV lengkap: E:\JANGAN DI HAPUS\OpenTerminal\_smc_lab\hasil_grid.csv
+
+[exited with code 0]

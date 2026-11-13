@@ -1,0 +1,11 @@
+memuat cache...
+simbol=142
+  p=1 disp=1.5 -> 250,929 sinyal
+  p=1 disp=2.0 -> 250,929 sinyal
+  p=2 disp=1.5 -> 255,679 sinyal
+  p=2 disp=2.0 -> 255,679 sinyal
+
+total 1,013,216 sinyal -> E:\JANGAN DI HAPUS\OpenTerminal\_smc_lab\cache_signals.npz
+simbol: 142
+
+[exited with code 0]

@@ -1,0 +1,37 @@
+=== BASELINE DRIFT: semua candle di jendela data (142 simbol) ===
+  total candle: 346,737  naik: 173,232  = 49.96%
+  per hari:
+    hari 0: n=  6,108  naik=49.98%
+    hari 1: n=    379  naik=45.38%
+    hari 2: n=  4,718  naik=49.85%
+    hari 3: n= 17,070  naik=49.71%
+    hari 4: n= 17,040  naik=50.18%
+    hari 5: n= 79,466  naik=50.05%
+    hari 6: n= 83,831  naik=49.90%
+    hari 7: n=138,125  naik=49.97%
+
+=== KURVA KEYAKINAN: apakah menambah gate menaikkan winrate? ===
+
+  CALL: winrate saat makin banyak gate aktif
+    >= 0 gate: n= 252,066  WR=51.58%
+    >= 1 gate: n= 250,477  WR=51.56%
+    >= 2 gate: n= 215,445  WR=51.44%
+    >= 3 gate: n= 129,614  WR=50.99%
+    >= 4 gate: n=  50,795  WR=50.75%
+    >= 5 gate: n=  13,305  WR=49.33%
+
+  PUT: winrate saat makin banyak gate aktif
+    >= 0 gate: n= 253,194  WR=48.28%
+    >= 1 gate: n= 251,568  WR=48.29%
+    >= 2 gate: n= 216,726  WR=48.44%
+    >= 3 gate: n= 131,279  WR=48.32%
+    >= 4 gate: n=  51,224  WR=48.87%
+    >= 5 gate: n=  13,346  WR=49.93%
+
+=== OTE saja vs NON-OTE (kontrol drift) ===
+  CALL OTE      n=  14,602 WR=55.02%
+  CALL NON-OTE  n= 237,464 WR=51.37%
+  PUT  OTE      n=  14,896 WR=44.72%
+  PUT  NON-OTE  n= 238,298 WR=48.50%
+
+[exited with code 0]

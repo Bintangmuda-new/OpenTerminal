@@ -1,0 +1,705 @@
+<title>Audit SMC/ICT</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+  /* Layout: dossier riset — kolom baca sempit, angka sebagai bintang utama. */
+  :root {
+    --bg: #f7f6f3;
+    --bg-soft: #ffffff;
+    --fg: #16191d;
+    --fg-dim: #5c6470;
+    --line: #d9d5cd;
+    --line-soft: #e8e4dc;
+    --accent: #8a5a1e;
+    --accent-soft: #f0e6d6;
+    --good: #0f6b52;
+    --good-soft: #dcefe8;
+    --bad: #a33a2c;
+    --bad-soft: #f6e0dc;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --display: "Bricolage Grotesque", Georgia, serif;
+    --body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151a;
+      --bg-soft: #191d24;
+      --fg: #e8e6e1;
+      --fg-dim: #9aa3af;
+      --line: #2b313a;
+      --line-soft: #232830;
+      --accent: #d9a04a;
+      --accent-soft: #2a2419;
+      --good: #4fd1a5;
+      --good-soft: #142b24;
+      --bad: #e8806f;
+      --bad-soft: #2e1b18;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151a;
+    --bg-soft: #191d24;
+    --fg: #e8e6e1;
+    --fg-dim: #9aa3af;
+    --line: #2b313a;
+    --line-soft: #232830;
+    --accent: #d9a04a;
+    --accent-soft: #2a2419;
+    --good: #4fd1a5;
+    --good-soft: #142b24;
+    --bad: #e8806f;
+    --bad-soft: #2e1b18;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.65;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0 72px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 20px;
+    padding-block: 28px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(2rem, 7vw, 3.1rem);
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.02;
+    text-wrap: balance;
+    margin: 18px 0 14px;
+  }
+  .standfirst {
+    font-size: 1.06rem;
+    color: var(--fg-dim);
+    max-width: 58ch;
+    margin: 0 0 8px;
+  }
+  .standfirst strong { color: var(--fg); font-weight: 600; }
+
+  /* ---------- verdict ---------- */
+  .verdict {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin-block: 34px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--good);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .verdict-main { padding: 24px 24px 20px; }
+  .verdict-num {
+    font-family: var(--display);
+    font-size: clamp(3rem, 13vw, 4.6rem);
+    font-weight: 800;
+    letter-spacing: -.045em;
+    line-height: .92;
+    color: var(--good);
+    font-variant-numeric: tabular-nums;
+    display: block;
+  }
+  .verdict-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-top: 10px;
+    display: block;
+  }
+  .verdict-body {
+    padding: 18px 24px 22px;
+    border-top: 1px solid var(--line-soft);
+    font-size: .95rem;
+    color: var(--fg-dim);
+  }
+  .verdict-body p { margin: 0 0 10px; }
+  .verdict-body p:last-child { margin-bottom: 0; }
+  .verdict-body strong { color: var(--fg); font-weight: 600; }
+
+  /* ---------- sections ---------- */
+  section { margin-block: 48px 0; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 22px;
+  }
+  .sec-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--accent);
+    font-weight: 600;
+    flex: none;
+  }
+  h2 {
+    font-family: var(--display);
+    font-size: clamp(1.25rem, 4vw, 1.6rem);
+    font-weight: 600;
+    letter-spacing: -.015em;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin: 0;
+  }
+  p { margin: 0 0 16px; max-width: 66ch; }
+  p:last-child { margin-bottom: 0; }
+  a { color: var(--accent); }
+
+  /* ---------- data table ---------- */
+  .scroll { overflow-x: auto; margin-block: 22px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 420px;
+    font-size: .88rem;
+  }
+  caption {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    padding-bottom: 10px;
+  }
+  th, td {
+    text-align: right;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    border-bottom: 1px solid var(--line);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  .hi { background: var(--good-soft); }
+  .hi td { font-weight: 600; }
+  .muted { color: var(--fg-dim); }
+
+  /* ---------- bar chart ---------- */
+  .chart { margin-block: 26px 10px; }
+  .chart-row {
+    display: grid;
+    grid-template-columns: minmax(0, 148px) minmax(0, 1fr) 62px;
+    align-items: center;
+    gap: 12px;
+    padding-block: 7px;
+  }
+  .chart-name { font-size: .84rem; line-height: 1.25; }
+  .chart-name span { display: block; font-size: .72rem; color: var(--fg-dim); }
+  .track {
+    position: relative;
+    height: 26px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow: visible;
+  }
+  .bar {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    border-radius: 2px;
+    background: var(--fg-dim);
+  }
+  .bar.win { background: var(--good); }
+  .bar.lose { background: var(--bad); }
+  .chart-val {
+    font-family: var(--mono);
+    font-size: .82rem;
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .breakeven {
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    width: 1px;
+    background: var(--accent);
+    opacity: .85;
+  }
+  .axis {
+    display: grid;
+    grid-template-columns: minmax(0, 148px) minmax(0, 1fr) 62px;
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .axis-inner {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--fg-dim);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 14px;
+    font-size: .78rem;
+    color: var(--fg-dim);
+  }
+  .legend i {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 1px;
+    margin-right: 6px;
+    vertical-align: baseline;
+  }
+
+  /* ---------- drift comparison ---------- */
+  .duo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-block: 24px;
+    overflow: hidden;
+  }
+  .duo-cell { background: var(--bg-soft); padding: 20px; }
+  .duo-cell h3 {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin: 0 0 10px;
+  }
+  .duo-num {
+    font-family: var(--display);
+    font-size: clamp(2rem, 8vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .duo-note { font-size: .78rem; color: var(--fg-dim); margin-top: 8px; line-height: 1.4; }
+  .gap-note {
+    margin-top: -12px;
+    margin-bottom: 24px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    color: var(--bad);
+    letter-spacing: .02em;
+  }
+
+  /* ---------- bug card ---------- */
+  .bug {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg-soft);
+    padding: 20px;
+    margin-block: 20px;
+  }
+  .bug-title {
+    font-family: var(--display);
+    font-size: 1.02rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .bug-where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin: 0 0 12px;
+    word-break: break-word;
+  }
+  .bug p { font-size: .9rem; color: var(--fg-dim); margin-bottom: 12px; }
+  .bug p:last-child { margin-bottom: 0; }
+  .ratio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: .84rem;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .ratio b { color: var(--bad); font-weight: 600; }
+  .ratio b.fix { color: var(--good); }
+  .arrow { color: var(--fg-dim); }
+
+  /* ---------- limits ---------- */
+  .limits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .limits li {
+    background: var(--bg-soft);
+    padding: 14px 18px;
+    font-size: .9rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .limits b { font-weight: 600; }
+  .limits span { color: var(--fg-dim); font-size: .85rem; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--line-soft);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-dim);
+    letter-spacing: .04em;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 520px) {
+    .chart-row, .axis {
+      grid-template-columns: minmax(0, 104px) minmax(0, 1fr) 54px;
+      gap: 8px;
+    }
+    .chart-name { font-size: .78rem; }
+    .verdict-main, .verdict-body { padding-inline: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="eyebrow">Audit strategi · 13 November 2026</span>
+    <span class="eyebrow">1.013.216 sinyal · 142 simbol</span>
+  </header>
+
+  <h1>Hanya satu aturan yang bertahan</h1>
+  <p class="standfirst">
+    Audit ulang seluruh aturan SMC/ICT pada 346.737 candle M1. Delapan belas aturan diuji,
+    satu kombinasi lolos semua uji. Sisanya <strong>tidak punya edge</strong> — dan satu
+    kandidat yang tampak sempurna ternyata jebakan.
+  </p>
+
+  <div class="verdict">
+    <div class="verdict-main">
+      <span class="verdict-num">55,45%</span>
+      <span class="verdict-label">OTE + CHoCH · holdout + lockbox</span>
+    </div>
+    <div class="verdict-body">
+      <p>
+        <strong>Batas bawah 95%: 54,45%.</strong> Butuh 52,08% untuk impas pada payout 92%,
+        jadi marginnya nyata — tetapi tipis.
+      </p>
+      <p>
+        Berlaku <strong>hanya untuk CALL</strong>. Pada PUT kombinasi yang sama menghasilkan
+        44,72%, di bawah baseline. Edge ini belum diuji pada periode live.
+      </p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>CHoCH sendirian tidak menghasilkan apa pun</h2>
+    </div>
+    <p>
+      Delapan belas aturan kanonik diuji pada empat parameter, menghasilkan 716 kombinasi.
+      Yang terlihat menang di holdout justru gagal di train — tanda overfit, bukan edge.
+    </p>
+    <div class="scroll">
+      <table>
+        <caption>Holdout hari ke-6 · 142 simbol</caption>
+        <thead>
+          <tr><th>Aturan</th><th>n</th><th>Winrate</th><th>lb95</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>K17 seq_full</td><td>2.369</td><td>54,16%</td><td>52,15</td></tr>
+          <tr><td>K15 seq_htf_choch</td><td>84.425</td><td>51,46%</td><td>51,12</td></tr>
+          <tr><td>K1 CHoCH kanonik</td><td>158.720</td><td>51,20%</td><td>50,96</td></tr>
+          <tr><td>K12 HTF H1</td><td>213.662</td><td>49,60%</td><td>49,39</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      K17 memang tertinggi di holdout, tetapi train-nya hanya 49,72%. Angka bagus yang
+      tidak konsisten antar periode bukan penemuan.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Kandidat 60,93% ternyata drift pasar</h2>
+    </div>
+    <p>
+      Kombinasi CALL + FVG + OTE mencapai <b>60,93%</b> di lockbox dengan 430 sinyal.
+      Terlihat seperti penemuan besar. Uji kontrol membongkarnya.
+    </p>
+
+    <div class="duo">
+      <div class="duo-cell">
+        <h3>Kandidat</h3>
+        <div class="duo-num">60,93%</div>
+        <div class="duo-note">CALL + FVG + OTE · lockbox n=430</div>
+      </div>
+      <div class="duo-cell">
+        <h3>Kontrol: selalu CALL</h3>
+        <div class="duo-num">60,23%</div>
+        <div class="duo-note">Tanpa aturan apa pun pada subset yang sama</div>
+      </div>
+    </div>
+    <p class="gap-note">Selisih hanya 0,70pt — aturan itu tidak menambah apa pun.</p>
+
+    <p>
+      Null test mengonfirmasi: mengacak label menghasilkan p95 <b>58,40%</b>, persis sama
+      dengan winrate sinyal asli 58,40%. Artinya seluruh keunggulan berasal dari candle
+      yang kebetulan naik, bukan dari aturan SMC.
+    </p>
+    <p>
+      Baseline feed sendiri netral — 49,96% dari 346.737 candle. Drift-nya tidak ada di
+      pasar, melainkan di subset sinyal yang terpilih.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Yang benar-benar bekerja: OTE sebagai syarat entry</h2>
+    </div>
+    <p>
+      Uji empat sel memisahkan kontribusi tiap komponen. Zona OTE adalah retracement
+      62–79% dari leg terakhir; CHoCH adalah trigger struktur.
+    </p>
+
+    <div class="chart">
+      <div class="chart-row">
+        <div class="chart-name">OTE + CHoCH<span>kombinasi penuh</span></div>
+        <div class="track">
+          <div class="bar win" style="width:82.8%"></div>
+          <div class="breakeven" style="left:45.3%"></div>
+        </div>
+        <div class="chart-val">55,45%</div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-name">CHoCH saja<span>tanpa zona OTE</span></div>
+        <div class="track">
+          <div class="bar" style="width:38.0%"></div>
+          <div class="breakeven" style="left:45.3%"></div>
+        </div>
+        <div class="chart-val">51,42%</div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-name">OTE saja<span>tanpa trigger</span></div>
+        <div class="track">
+          <div class="bar" style="width:24.0%"></div>
+          <div class="breakeven" style="left:45.3%"></div>
+        </div>
+        <div class="chart-val">50,16%</div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-name">Tanpa keduanya<span>kontrol</span></div>
+        <div class="track">
+          <div class="bar lose" style="width:11.7%"></div>
+          <div class="breakeven" style="left:45.3%"></div>
+        </div>
+        <div class="chart-val">49,05%</div>
+      </div>
+      <div class="axis">
+        <div></div>
+        <div class="axis-inner"><span>48%</span><span>52%</span><span>57%</span></div>
+        <div></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--good)"></i>Lolos uji</span>
+        <span><i style="background:var(--fg-dim)"></i>Tidak berbeda dari baseline</span>
+        <span><i style="background:var(--accent)"></i>Impas payout 92% (52,08%)</span>
+      </div>
+    </div>
+
+    <p>
+      Kesimpulannya jelas: trigger CHoCH baru bernilai kalau entry berada di zona diskon.
+      Sendiri-sendiri, keduanya mengambang di sekitar 50%.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>Bukti tambahan · OTE + CHoCH CALL</caption>
+        <thead>
+          <tr><th>Uji</th><th>Hasil</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Permutasi label (1000×)</td><td>p = 0,0000</td><td class="muted">signifikan</td></tr>
+          <tr><td>Konsistensi harian</td><td>7 dari 7 hari positif</td><td class="muted">t = 4,42</td></tr>
+          <tr><td>Sebaran simbol</td><td>98 dari 123 di atas 50%</td><td class="muted">80%</td></tr>
+          <tr class="hi"><td>Melewati impas 92%</td><td>90 dari 123 simbol</td><td>73%</td></tr>
+          <tr><td>Lockbox hari ke-7</td><td>55,60% · n=5.890</td><td class="muted">lb95 54,33</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>Dua bug di aplikasi yang mendistorsi sinyal</h2>
+    </div>
+
+    <div class="bug">
+      <h3 class="bug-title">CHoCH tidak simetris</h3>
+      <p class="bug-where">AnalyzeSmcFull · MainWindow.xaml.cs</p>
+      <p>
+        <code>lowerHigh</code> diisi swing high <em>sebelumnya</em> yang lebih tinggi,
+        sedangkan <code>higherLow</code> diisi pivot terbaru. Akibatnya CHoCH bullish harus
+        menembus level yang lebih jauh daripada bearish — sinyal CALL jadi jauh lebih jarang
+        tanpa alasan pasar.
+      </p>
+      <div class="ratio">
+        <span>rasio CALL/PUT</span>
+        <b>0,56</b>
+        <span class="arrow">→</span>
+        <b class="fix">1,01</b>
+        <span class="muted">setelah disimetriskan</span>
+      </div>
+    </div>
+
+    <div class="bug">
+      <h3 class="bug-title">Agregasi candle tidak sejajar jam</h3>
+      <p class="bug-where">AggregateCandles · MainWindow.xaml.cs</p>
+      <p>
+        Loop lama mengelompokkan mulai dari elemen pertama array, bukan batas waktu. Karena
+        daftar candle bergeser setiap bar baru, batas M15 dan H1 ikut bergeser — swing,
+        CHoCH, dan FVG berubah tanpa ada perubahan di pasar.
+      </p>
+      <div class="ratio">
+        <span>bucket 15 menit</span>
+        <b>bergeser</b>
+        <span class="arrow">→</span>
+        <b class="fix">7 dari 7 sejajar</b>
+        <span class="muted">diverifikasi 100 candle</span>
+      </div>
+    </div>
+
+    <p style="margin-top:24px">
+      Keduanya diperbaiki dan diverifikasi lewat harness C# terpisah. Build bersih:
+      0 error, 0 warning. Ada juga perbaikan build yang sudah rusak sebelumnya —
+      <code>UiSettings</code> kehilangan field dan satu variabel tidak pernah dideklarasikan.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>Filter hanya dipasang di sisi CALL</h2>
+    </div>
+    <p>
+      Setelah diukur, OTE menaikkan winrate CALL tetapi justru merusak PUT. Karena itu
+      filternya sengaja tidak dipasang dua arah.
+    </p>
+    <div class="scroll">
+      <table>
+        <caption>Dampak filter pada sinyal aplikasi · p=1</caption>
+        <thead>
+          <tr><th>Arah</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th><th>Lolos</th></tr>
+        </thead>
+        <tbody>
+          <tr class="hi"><td>CALL</td><td>51,55%</td><td>54,42%</td><td>+2,87pt</td><td>7,3%</td></tr>
+          <tr><td>PUT</td><td>48,18%</td><td>45,05%</td><td>−3,13pt</td><td>7,2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      Filter memotong sekitar 93% sinyal. Pada 142 simbol itu masih menyisakan rata-rata
+      16 sinyal per simbol per hari — cukup untuk trading, tetapi jauh lebih sepi dari sebelumnya.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>Batas yang harus diingat</h2>
+    </div>
+    <ul class="limits">
+      <li>
+        <b>Periode tidak tumpang tindih</b>
+        <span>Data riset berakhir 20 September 2026, jurnal live berjalan 4–12 November 2026.
+        Edge OTE belum pernah diuji pada periode live.</span>
+      </li>
+      <li>
+        <b>Jendela hanya 8 hari</b>
+        <span>Perilaku generator broker bisa berubah antar periode. Hasil ini bukan jaminan
+        untuk bulan depan.</span>
+      </li>
+      <li>
+        <b>Hanya CALL</b>
+        <span>Tidak ada penjelasan yang terverifikasi mengapa PUT tidak bekerja. Kemungkinan
+        besar bias naik jangka pendek pada jendela data — perlakukan sebagai hipotesis.</span>
+      </li>
+      <li>
+        <b>Margin tipis</b>
+        <span>55,45% melawan impas 52,08% memberi EV +6% per trade pada payout 92%.
+        Payout lebih rendah dari itu menghapus keunggulannya.</span>
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    Protokol: train hari 0–5 · holdout hari 6 · lockbox hari 7.<br>
+    Keputusan T-5 detik, entry open candle B, hasil close candle B.<br>
+    Skrip: <code>_smc_lab/</code> · dokumentasi: <code>AUDIT-STRATEGI.md</code>
+  </footer>
+
+</div>

@@ -1,51 +1,2387 @@
 <Window x:Class="OpenTerminal.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="OPEN TERMINAL BMF" Width="1600" Height="960" MinWidth="1180" MinHeight="720"
-        WindowStartupLocation="CenterScreen" Background="#070B12" Foreground="#E5EBF4">
+        Title="OPEN TERMINAL BMF"
+        Width="1600"
+        Height="960"
+        MinWidth="640"
+        MinHeight="460"
+        WindowStartupLocation="CenterScreen"
+        Background="#000000"
+        Foreground="#E6EDF5"
+        SizeChanged="Window_SizeChanged">
   <Window.Resources>
-    <SolidColorBrush x:Key="Panel" Color="#101722"/><SolidColorBrush x:Key="Panel2" Color="#151E2B"/><SolidColorBrush x:Key="Border" Color="#26364A"/>
-    <Style x:Key="WidgetTitleStyle" TargetType="TextBlock"><Setter Property="Foreground" Value="#FFFF3030"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="FontSize" Value="10"/><Setter Property="TextAlignment" Value="Center"/><Setter Property="HorizontalAlignment" Value="Stretch"/><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="Margin" Value="0,0,0,5"/><Style.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever"><ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" Duration="0:0:4"><LinearColorKeyFrame KeyTime="0:0:0" Value="#FFFF3030"/><LinearColorKeyFrame KeyTime="0:0:1" Value="#FF30FF50"/><LinearColorKeyFrame KeyTime="0:0:2" Value="#FF3080FF"/><LinearColorKeyFrame KeyTime="0:0:3" Value="#FFFF30D0"/><LinearColorKeyFrame KeyTime="0:0:4" Value="#FFFF3030"/></ColorAnimationUsingKeyFrames><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.65" To="1" Duration="0:0:0.7" AutoReverse="True" RepeatBehavior="Forever"/></Storyboard></BeginStoryboard></EventTrigger></Style.Triggers></Style>
-    <Style TargetType="Button"><Setter Property="Margin" Value="3"/><Setter Property="Padding" Value="10,6"/><Setter Property="Background" Value="{StaticResource Panel2}"/><Setter Property="Foreground" Value="#B8C7D9"/><Setter Property="BorderBrush" Value="{StaticResource Border}"/><Setter Property="Cursor" Value="Hand"/></Style>
-    <Style TargetType="TextBox"><Setter Property="Margin" Value="4"/><Setter Property="Padding" Value="9,7"/><Setter Property="Background" Value="#0B111A"/><Setter Property="Foreground" Value="#E7EDF5"/><Setter Property="BorderBrush" Value="{StaticResource Border}"/></Style>
-    <Style TargetType="ComboBox"><Setter Property="Margin" Value="4"/><Setter Property="Padding" Value="7,4"/><Setter Property="Background" Value="#151E2B"/><Setter Property="Foreground" Value="#E7EDF5"/><Setter Property="BorderBrush" Value="{StaticResource Border}"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid><ToggleButton x:Name="Toggle" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Focusable="False"><Grid><ContentPresenter Margin="{TemplateBinding Padding}" Content="{TemplateBinding SelectionBoxItem}" VerticalAlignment="Center"/><Path Data="M 0 0 L 8 0 L 4 5 Z" Fill="#A3B8D0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="6"/></Grid></ToggleButton><Popup x:Name="Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade"><Border Background="#101722" BorderBrush="#2E4863" BorderThickness="1" MinWidth="{Binding ActualWidth, ElementName=Toggle}"><ScrollViewer MaxHeight="260"><ItemsPresenter/></ScrollViewer></Border></Popup></Grid></ControlTemplate></Setter.Value></Setter></Style>
-    <Style TargetType="ComboBoxItem"><Setter Property="Background" Value="#151E2B"/><Setter Property="Foreground" Value="#E7EDF5"/><Setter Property="Padding" Value="8,5"/><Style.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter Property="Background" Value="#17334B"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#1F3E59"/><Setter Property="Foreground" Value="#FFFFFF"/></Trigger></Style.Triggers></Style>
-    <Style TargetType="MenuItem"><Setter Property="Background" Value="#121A26"/><Setter Property="Foreground" Value="#DCE7F4"/><Setter Property="Padding" Value="8,5"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem"><Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Path x:Name="CheckMark" Data="M 2 7 L 6 11 L 14 2" Stroke="#72E3C3" StrokeThickness="2" VerticalAlignment="Center" Visibility="Collapsed"/><ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/></Grid></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="ItemBorder" Property="Background" Value="#26384D"/><Setter Property="Foreground" Value="#FFFFFF"/></Trigger><Trigger Property="IsChecked" Value="True"><Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="#718198"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-    <Style TargetType="Separator"><Setter Property="Margin" Value="6,3"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Separator"><Border Height="1" Background="#344255"/></ControlTemplate></Setter.Value></Setter></Style>
-    <Style TargetType="CheckBox"><Setter Property="Foreground" Value="#C8D7E8"/><Setter Property="Background" Value="Transparent"/><Setter Property="FontSize" Value="11"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox"><StackPanel Orientation="Horizontal" Cursor="Hand"><Border x:Name="Box" Width="14" Height="14" Margin="0,0,5,0" CornerRadius="2" BorderBrush="#59728E" BorderThickness="1" Background="#0B111A" VerticalAlignment="Center"><Path x:Name="Mark" Data="M 2 7 L 5.5 10 L 12 3" Stroke="#080C12" StrokeThickness="2" Visibility="Collapsed"/></Border><ContentPresenter VerticalAlignment="Center"/></StackPanel><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="Box" Property="Background" Value="#25C89A"/><Setter TargetName="Box" Property="BorderBrush" Value="#72E3C3"/><Setter TargetName="Mark" Property="Visibility" Value="Visible"/><Setter Property="Foreground" Value="#72E3C3"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="#F0B90B"/><Setter Property="Foreground" Value="#F0D27A"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-    <Style TargetType="GroupBox"><Setter Property="Margin" Value="5"/><Setter Property="Padding" Value="7"/><Setter Property="BorderBrush" Value="{StaticResource Border}"/><Setter Property="Foreground" Value="#A3B8D0"/><Setter Property="FontSize" Value="11"/><Setter Property="HeaderTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource WidgetTitleStyle}"/></DataTemplate></Setter.Value></Setter></Style>
-    <Style TargetType="DataGrid"><Setter Property="Margin" Value="4"/><Setter Property="Background" Value="#0B111A"/><Setter Property="Foreground" Value="#DCE7F4"/><Setter Property="BorderBrush" Value="{StaticResource Border}"/><Setter Property="RowBackground" Value="#0B111A"/><Setter Property="AlternatingRowBackground" Value="#101722"/><Setter Property="GridLinesVisibility" Value="Horizontal"/><Setter Property="HeadersVisibility" Value="Column"/><Setter Property="IsReadOnly" Value="True"/></Style>
-    <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#151E2B"/><Setter Property="Foreground" Value="#A3B8D0"/><Setter Property="BorderBrush" Value="{StaticResource Border}"/><Setter Property="Padding" Value="8,7"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
-    <Style TargetType="DataGridCell"><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#DCE7F4"/><Setter Property="BorderBrush" Value="#203044"/><Setter Property="Padding" Value="7,5"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/></Style>
-    <Style TargetType="DataGridRow"><Setter Property="Foreground" Value="#DCE7F4"/><Setter Property="Background" Value="#0B111A"/><Setter Property="BorderBrush" Value="#203044"/><Setter Property="Height" Value="30"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#17334B"/><Setter Property="Foreground" Value="#FFFFFF"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#132235"/></Trigger></Style.Triggers></Style>
-    <Style TargetType="ListBoxItem"><Setter Property="Foreground" Value="#DCE7F4"/><Setter Property="Background" Value="Transparent"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#17334B"/><Setter Property="Foreground" Value="#FFFFFF"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#132235"/></Trigger></Style.Triggers></Style>
+    <Style x:Key="DarkScrollThumb"
+           TargetType="Thumb">
+      <Setter Property="IsTabStop"
+              Value="False"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Thumb">
+            <Border x:Name="ThumbBorder"
+                    Background="#000000"
+                    BorderBrush="#2A3442"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Margin="1"/>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver"
+                       Value="True">
+                <Setter TargetName="ThumbBorder"
+                        Property="Background"
+                        Value="#141A24"/>
+              </Trigger>
+              <Trigger Property="IsDragging"
+                       Value="True">
+                <Setter TargetName="ThumbBorder"
+                        Property="Background"
+                        Value="#1C2533"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="DarkScrollPage"
+           TargetType="RepeatButton">
+      <Setter Property="IsTabStop"
+              Value="False"/>
+      <Setter Property="Focusable"
+              Value="False"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RepeatButton">
+            <Border Background="Transparent"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Width"
+              Value="10"/>
+      <Setter Property="MinWidth"
+              Value="10"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Border Background="#000000">
+              <Track x:Name="PART_Track"
+                     IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Style="{StaticResource DarkScrollPage}"
+                                Command="ScrollBar.PageUpCommand"/>
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb Style="{StaticResource DarkScrollThumb}"/>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Style="{StaticResource DarkScrollPage}"
+                                Command="ScrollBar.PageDownCommand"/>
+                </Track.IncreaseRepeatButton>
+              </Track>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Orientation"
+                 Value="Horizontal">
+          <Setter Property="Width"
+                  Value="Auto"/>
+          <Setter Property="MinWidth"
+                  Value="0"/>
+          <Setter Property="Height"
+                  Value="10"/>
+          <Setter Property="MinHeight"
+                  Value="10"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ScrollBar">
+                <Border Background="#000000">
+                  <Track x:Name="PART_Track"
+                         IsDirectionReversed="False">
+                    <Track.DecreaseRepeatButton>
+                      <RepeatButton Style="{StaticResource DarkScrollPage}"
+                                    Command="ScrollBar.PageLeftCommand"/>
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                      <Thumb Style="{StaticResource DarkScrollThumb}"/>
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                      <RepeatButton Style="{StaticResource DarkScrollPage}"
+                                    Command="ScrollBar.PageRightCommand"/>
+                    </Track.IncreaseRepeatButton>
+                  </Track>
+                </Border>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <SolidColorBrush x:Key="Panel"
+                     Color="#000000"/>
+    <SolidColorBrush x:Key="Panel2"
+                     Color="#000000"/>
+    <SolidColorBrush x:Key="Border"
+                     Color="#2A313B"/>
+    <Style x:Key="WidgetLabelStyle"
+           TargetType="TextBlock">
+      <Setter Property="Foreground"
+              Value="#9FB3CC"/>
+      <Setter Property="FontFamily"
+              Value="Segoe UI"/>
+      <Setter Property="FontSize"
+              Value="9"/>
+      <Setter Property="VerticalAlignment"
+              Value="Center"/>
+    </Style>
+    <Style x:Key="WidgetDataStyle"
+           TargetType="TextBlock">
+      <Setter Property="Foreground"
+              Value="#DCE7F4"/>
+      <Setter Property="FontFamily"
+              Value="Consolas"/>
+      <Setter Property="FontSize"
+              Value="10"/>
+      <Setter Property="TextTrimming"
+              Value="CharacterEllipsis"/>
+      <Setter Property="VerticalAlignment"
+              Value="Center"/>
+    </Style>
+    <Style x:Key="WidgetTitleStyle"
+           TargetType="TextBlock">
+      <Setter Property="Foreground"
+              Value="#9AA9B8"/>
+      <Setter Property="FontWeight"
+              Value="Bold"/>
+      <Setter Property="FontSize"
+              Value="10"/>
+      <Setter Property="TextAlignment"
+              Value="Center"/>
+      <Setter Property="HorizontalAlignment"
+              Value="Stretch"/>
+      <Setter Property="VerticalAlignment"
+              Value="Center"/>
+      <Setter Property="Margin"
+              Value="0,0,0,5"/>
+      <Setter Property="Opacity"
+              Value="0.95"/>
+    </Style>
+    <Style TargetType="Button">
+      <Setter Property="Margin"
+              Value="3"/>
+      <Setter Property="Padding"
+              Value="10,6"/>
+      <Setter Property="Background"
+              Value="{StaticResource Panel2}"/>
+      <Setter Property="Foreground"
+              Value="#B8C7D9"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource Border}"/>
+      <Setter Property="Cursor"
+              Value="Hand"/>
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Margin"
+              Value="4"/>
+      <Setter Property="Padding"
+              Value="9,7"/>
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Foreground"
+              Value="#E7EDF5"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource Border}"/>
+    </Style>
+    <Style TargetType="ComboBox">
+      <Setter Property="Margin"
+              Value="4"/>
+      <Setter Property="Padding"
+              Value="7,4"/>
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Foreground"
+              Value="#E7EDF5"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource Border}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBox">
+            <Grid>
+              <ToggleButton x:Name="Toggle"
+                            Background="{TemplateBinding Background}"
+                            Foreground="{TemplateBinding Foreground}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1"
+                            IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                            Focusable="False">
+                <Grid>
+                  <ContentPresenter Margin="{TemplateBinding Padding}"
+                                    Content="{TemplateBinding SelectionBoxItem}"
+                                    VerticalAlignment="Center"/>
+                  <Path Data="M 0 0 L 8 0 L 4 5 Z"
+                        Fill="#A3B8D0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Margin="6"/>
+                </Grid>
+              </ToggleButton>
+              <Popup x:Name="Popup"
+                     IsOpen="{TemplateBinding IsDropDownOpen}"
+                     Placement="Bottom"
+                     AllowsTransparency="True"
+                     PopupAnimation="Fade">
+                <Border Background="#000000"
+                        BorderBrush="#2E4863"
+                        BorderThickness="1"
+                        MinWidth="{Binding ActualWidth, ElementName=Toggle}">
+                  <ScrollViewer MaxHeight="260">
+                    <ItemsPresenter/>
+                  </ScrollViewer>
+                </Border>
+              </Popup>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Foreground"
+              Value="#E7EDF5"/>
+      <Setter Property="Padding"
+              Value="8,5"/>
+      <Style.Triggers>
+        <Trigger Property="IsHighlighted"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="#17334B"/>
+        </Trigger>
+        <Trigger Property="IsSelected"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="#1F3E59"/>
+          <Setter Property="Foreground"
+                  Value="#FFFFFF"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style TargetType="MenuItem">
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Foreground"
+              Value="#DCE7F4"/>
+      <Setter Property="Padding"
+              Value="8,5"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="MenuItem">
+            <Grid>
+              <Border x:Name="ItemBorder"
+                      Background="{TemplateBinding Background}"
+                      Padding="{TemplateBinding Padding}">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                  </Grid.ColumnDefinitions>
+                  <Path x:Name="CheckMark"
+                        Data="M 2 7 L 6 11 L 14 2"
+                        Stroke="#72E3C3"
+                        StrokeThickness="2"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"/>
+                  <ContentPresenter Grid.Column="1"
+                                    ContentSource="Header"
+                                    RecognizesAccessKey="True"
+                                    VerticalAlignment="Center"/>
+                  <Path x:Name="SubmenuIndicator"
+                        Grid.Column="2"
+                        Data="M 0 0 L 5 4 L 0 8 Z"
+                        Fill="#A3B8D0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"/>
+                </Grid>
+              </Border>
+              <Popup x:Name="PART_Popup"
+                     Placement="Right"
+                     HorizontalOffset="-2"
+                     IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                     AllowsTransparency="True"
+                     Focusable="False"
+                     PopupAnimation="Fade">
+                <Border Background="#000000"
+                        BorderBrush="#2E4863"
+                        BorderThickness="1"
+                        Padding="2"
+                        MinWidth="180">
+                  <ScrollViewer MaxHeight="520">
+                    <ItemsPresenter/>
+                  </ScrollViewer>
+                </Border>
+              </Popup>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsHighlighted"
+                       Value="True">
+                <Setter TargetName="ItemBorder"
+                        Property="Background"
+                        Value="#26384D"/>
+                <Setter Property="Foreground"
+                        Value="#FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsChecked"
+                       Value="True">
+                <Setter TargetName="CheckMark"
+                        Property="Visibility"
+                        Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsEnabled"
+                       Value="False">
+                <Setter Property="Foreground"
+                        Value="#718198"/>
+              </Trigger>
+              <Trigger Property="Role"
+                       Value="SubmenuHeader">
+                <Setter TargetName="SubmenuIndicator"
+                        Property="Visibility"
+                        Value="Visible"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="Separator">
+      <Setter Property="Margin"
+              Value="6,3"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Separator">
+            <Border Height="1"
+                    Background="#344255"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground"
+              Value="#C8D7E8"/>
+      <Setter Property="Background"
+              Value="Transparent"/>
+      <Setter Property="FontSize"
+              Value="11"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <StackPanel Orientation="Horizontal"
+                        Cursor="Hand">
+              <Border x:Name="Box"
+                      Width="14"
+                      Height="14"
+                      Margin="0,0,5,0"
+                      CornerRadius="2"
+                      BorderBrush="#59728E"
+                      BorderThickness="1"
+                      Background="#000000"
+                      VerticalAlignment="Center">
+                <Path x:Name="Mark"
+                      Data="M 2 7 L 5.5 10 L 12 3"
+                      Stroke="#080C12"
+                      StrokeThickness="2"
+                      Visibility="Collapsed"/>
+              </Border>
+              <ContentPresenter VerticalAlignment="Center"/>
+            </StackPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked"
+                       Value="True">
+                <Setter TargetName="Box"
+                        Property="Background"
+                        Value="#25C89A"/>
+                <Setter TargetName="Box"
+                        Property="BorderBrush"
+                        Value="#72E3C3"/>
+                <Setter TargetName="Mark"
+                        Property="Visibility"
+                        Value="Visible"/>
+                <Setter Property="Foreground"
+                        Value="#72E3C3"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver"
+                       Value="True">
+                <Setter TargetName="Box"
+                        Property="BorderBrush"
+                        Value="#F0B90B"/>
+                <Setter Property="Foreground"
+                        Value="#F0D27A"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="GroupBox">
+      <Setter Property="Margin"
+              Value="5"/>
+      <Setter Property="Padding"
+              Value="7"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource Border}"/>
+      <Setter Property="Foreground"
+              Value="#A3B8D0"/>
+      <Setter Property="FontSize"
+              Value="11"/>
+      <Setter Property="HeaderTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <TextBlock Text="{Binding}"
+                       Style="{StaticResource WidgetTitleStyle}"/>
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="DataGrid">
+      <Setter Property="Margin"
+              Value="4"/>
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Foreground"
+              Value="#DCE7F4"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource Border}"/>
+      <Setter Property="RowBackground"
+              Value="#0B111A"/>
+      <Setter Property="AlternatingRowBackground"
+              Value="#101722"/>
+      <Setter Property="GridLinesVisibility"
+              Value="Horizontal"/>
+      <Setter Property="HeadersVisibility"
+              Value="Column"/>
+      <Setter Property="IsReadOnly"
+              Value="True"/>
+    </Style>
+    <Style TargetType="DataGridColumnHeader">
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="Foreground"
+              Value="#A3B8D0"/>
+      <Setter Property="BorderBrush"
+              Value="{StaticResource Border}"/>
+      <Setter Property="Padding"
+              Value="8,7"/>
+      <Setter Property="FontWeight"
+              Value="SemiBold"/>
+    </Style>
+    <Style TargetType="DataGridCell">
+      <Setter Property="Background"
+              Value="Transparent"/>
+      <Setter Property="Foreground"
+              Value="#DCE7F4"/>
+      <Setter Property="BorderBrush"
+              Value="#203044"/>
+      <Setter Property="Padding"
+              Value="7,5"/>
+      <Setter Property="FocusVisualStyle"
+              Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="DataGridRow">
+      <Setter Property="Foreground"
+              Value="#DCE7F4"/>
+      <Setter Property="Background"
+              Value="#000000"/>
+      <Setter Property="BorderBrush"
+              Value="#203044"/>
+      <Setter Property="Height"
+              Value="30"/>
+      <Setter Property="FocusVisualStyle"
+              Value="{x:Null}"/>
+      <Style.Triggers>
+        <Trigger Property="IsSelected"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="#17334B"/>
+          <Setter Property="Foreground"
+                  Value="#FFFFFF"/>
+        </Trigger>
+        <Trigger Property="IsMouseOver"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="#132235"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style TargetType="ListBoxItem">
+      <Setter Property="Foreground"
+              Value="#DCE7F4"/>
+      <Setter Property="Background"
+              Value="Transparent"/>
+      <Setter Property="HorizontalContentAlignment"
+              Value="Stretch"/>
+      <Setter Property="FocusVisualStyle"
+              Value="{x:Null}"/>
+      <Style.Triggers>
+        <Trigger Property="IsSelected"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="#17334B"/>
+          <Setter Property="Foreground"
+                  Value="#FFFFFF"/>
+        </Trigger>
+        <Trigger Property="IsMouseOver"
+                 Value="True">
+          <Setter Property="Background"
+                  Value="#132235"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
   </Window.Resources>
   <DockPanel>
-    <Border DockPanel.Dock="Top" Background="#0B111A" BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="14,10">
-      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal"><TextBlock Text="OPEN" FontSize="21" FontWeight="Bold" Foreground="#F0B90B"/><TextBlock Text="TERMINAL" FontSize="21" FontWeight="Bold" Foreground="#DCE7F4" Margin="3,0,18,0"/></StackPanel>
-        <Border Grid.Column="1" CornerRadius="10" Background="#173F38" Padding="8,3" VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><Ellipse x:Name="LiveDot" Width="7" Height="7" Fill="#25C89A" Margin="0,0,6,0" VerticalAlignment="Center"/><TextBlock x:Name="ConnectionText" Text="CONNECTING" FontSize="11" Foreground="#72E3C3"/><TextBlock Text="  ·  1s REFRESH" FontSize="11" Foreground="#72E3C3"/></StackPanel></Border>
-        <TextBlock x:Name="StatusText" Grid.Column="2" Text="Menyambungkan feed broker…" Foreground="#9FB3CC" VerticalAlignment="Center" Margin="16,0"/>
-        <StackPanel Grid.Column="3" Orientation="Horizontal"><TextBlock Text="DATA ONLY" Foreground="#E7B65A" VerticalAlignment="Center" Margin="6"/><Button Content="Refresh" Click="Refresh_Click"/><Button Content="Update SSID" Click="UpdateSsid_Click"/><Button Content="Auto Login" Click="BrowserLogin_Click"/></StackPanel>
+    <Border DockPanel.Dock="Top"
+            Background="#000000"
+            BorderBrush="#202020"
+            BorderThickness="0,0,0,1"
+            Padding="14,10">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock x:Name="OpenTitleText" Text="OPEN"
+                     FontSize="21"
+                     FontWeight="Bold"
+                     Foreground="#F0B90B"/>
+          <TextBlock x:Name="TerminalTitleText" Text="TERMINAL"
+                     FontSize="21"
+                     FontWeight="Bold"
+                     Foreground="#DCE7F4"
+                     Margin="3,0,18,0"/>
+        </StackPanel>
+        <Border x:Name="ConnectionStatusBadge"
+                Grid.Column="1"
+                CornerRadius="10"
+                Background="#173F38"
+                Padding="8,3"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal">
+            <Ellipse x:Name="LiveDot"
+                     Width="7"
+                     Height="7"
+                     Fill="#25C89A"
+                     Margin="0,0,6,0"
+                     VerticalAlignment="Center"/>
+            <TextBlock x:Name="ConnectionText"
+                       Text="CONNECTING"
+                       FontSize="11"
+                       Foreground="#72E3C3"/>
+            <TextBlock Text="  ·  1s REFRESH"
+                       FontSize="11"
+                       Foreground="#72E3C3"/>
+          </StackPanel>
+        </Border>
+        <TextBlock x:Name="StatusText"
+                   Grid.Column="2"
+                   Text="Menyambungkan feed broker…"
+                   Foreground="#9FB3CC"
+                   VerticalAlignment="Center"
+                   Margin="16,0"/>
+        <StackPanel Grid.Column="3"
+                    Orientation="Horizontal">
+          <TextBlock x:Name="DataOnlyLabelText"
+                     Text="DATA ONLY"
+                     Foreground="#E7B65A"
+                     VerticalAlignment="Center"
+                     Margin="6"/>
+          <Button Content="Refresh"
+                  Click="Refresh_Click"/>
+          <Button Content="Update SSID"
+                  Click="UpdateSsid_Click"/>
+          <Button Content="Auto Login"
+                  Click="BrowserLogin_Click"/>
+        </StackPanel>
       </Grid>
     </Border>
-    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="305"/></Grid.ColumnDefinitions>
-      <Border Background="#0B111A" BorderBrush="{StaticResource Border}" BorderThickness="0,0,1,0"><DockPanel>
-        <StackPanel DockPanel.Dock="Top"><TextBlock x:Name="MarketExplorerTitle" Text="PENCARIAN MARKET (ALL MARKET)" Style="{StaticResource WidgetTitleStyle}" FontSize="11" Margin="8,15,8,4"/><TextBox x:Name="SearchBox" TextChanged="SearchBox_TextChanged" ToolTip="Cari symbol atau market"/><StackPanel Margin="5,3"><WrapPanel HorizontalAlignment="Center"><Button Tag="ALL" Content="ALL" FontSize="8" Padding="4,4" Margin="1" Foreground="#F0B90B" Click="GroupFilter_Click"/><Button Tag="OPTION" Content="OPTION" FontSize="8" Padding="4,4" Margin="1" Foreground="#4D9DFF" Click="GroupFilter_Click"/><Button Tag="CURRENCIES" Content="CURRENCIES" FontSize="8" Padding="4,4" Margin="1" Foreground="#25C89A" Click="GroupFilter_Click"/><Button Tag="CRYPTOCURRENCIES" Content="CRYPTOCURRENCIES" FontSize="8" Padding="4,4" Margin="1" Foreground="#C792EA" Click="GroupFilter_Click"/></WrapPanel><WrapPanel HorizontalAlignment="Center"><Button Tag="COMMODITIES" Content="COMMODITIES" FontSize="8" Padding="4,4" Margin="1" Foreground="#E7B65A" Click="GroupFilter_Click"/><Button Tag="STOCKS" Content="STOCKS" FontSize="8" Padding="4,4" Margin="1" Foreground="#52B7D8" Click="GroupFilter_Click"/><Button Tag="INDICES" Content="INDICES" FontSize="8" Padding="4,4" Margin="1" Foreground="#F26D78" Click="GroupFilter_Click"/><Button Tag="FAVORITES" Content="FAVORITES" FontSize="8" Padding="4,4" Margin="1" Foreground="#F8B84E" Click="GroupFilter_Click"/></WrapPanel></StackPanel><TextBlock x:Name="MarketCountText" Foreground="#9FB3CC" Margin="14,7"/></StackPanel>
-        <ListBox x:Name="MarketList" Background="Transparent" BorderThickness="0" Foreground="#DCE7F4" SelectionChanged="MarketList_SelectionChanged" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible"><ListBox.ItemTemplate><DataTemplate><Grid Margin="8,5"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="92"/></Grid.ColumnDefinitions><StackPanel Grid.Column="0" Margin="0,0,8,0"><TextBlock Text="{Binding Symbol}" FontFamily="Consolas" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Name}" Foreground="#7890AC" FontSize="10" TextTrimming="CharacterEllipsis"/></StackPanel><StackPanel Grid.Column="1" HorizontalAlignment="Right"><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><TextBlock Text="{Binding Price}" FontFamily="Consolas" TextAlignment="Right"/><Button Tag="{Binding Symbol}" Content="{Binding FavoriteGlyph}" Click="Favorite_Click" Padding="2,0" Margin="4,0,0,0" Background="Transparent" BorderThickness="0" Foreground="#F8B84E" ToolTip="Favorit"/></StackPanel><TextBlock Text="{Binding State}" FontSize="10" Foreground="#36CFA1" TextAlignment="Right"/></StackPanel></Grid></DataTemplate></ListBox.ItemTemplate></ListBox>
-      </DockPanel></Border>
-      <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="132"/></Grid.RowDefinitions>
-        <Border Background="#0C121C" BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1" Padding="11"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><TextBlock x:Name="SelectedSymbolText" FontFamily="Consolas" FontSize="20" FontWeight="Bold"/><TextBlock x:Name="SelectedNameText" Style="{StaticResource WidgetTitleStyle}" FontSize="12" VerticalAlignment="Center" Margin="10,0"/><Button Content="SYMBOL" Click="OpenMarketSearch_Click"/></StackPanel><StackPanel Grid.Column="2" Orientation="Horizontal"><TextBlock Text="STRATEGY" Visibility="Collapsed" Foreground="#8492A6" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,2,0"/><ComboBox x:Name="StrategyBox" Visibility="Collapsed" Width="175" SelectionChanged="StrategyBox_Changed"><ComboBoxItem Content="OFF" IsSelected="True"/><ComboBoxItem Content="Z-SCORE REVERSAL"/><ComboBoxItem Content="EMA 9/21 CROSS"/><ComboBoxItem Content="RSI 14 REVERSAL"/><ComboBoxItem Content="STRUCTURE BREAK"/></ComboBox><Button Content="INDIKATOR" Padding="9,5" Click="Indicators_Click"><Button.ContextMenu><ContextMenu Background="#121A26" Foreground="#E5EBF4"><MenuItem Header="INDIKATOR" IsEnabled="False" FontWeight="Bold"/><Separator/><MenuItem x:Name="DirectionOverlayBox" Header="EMA 9 / 21" IsCheckable="True" IsChecked="True" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="RsiOverlayBox" Header="RSI 14" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="BollingerOverlayBox" Header="Bollinger Bands 20, 2" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="AtrOverlayBox" Header="ATR 14" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="LevelsOverlayBox" Header="Support / Resistance" IsCheckable="True" IsChecked="True" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="StructureOverlayBox" Header="BOS / CHoCH" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="SlShOverlayBox" Header="SL / SH · 4 candle" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><Separator/><MenuItem Header="METRIK" IsEnabled="False" FontWeight="Bold"/><MenuItem Header="OHLC · RSI · ATR · candle timer" IsEnabled="False"/><Separator/><MenuItem Header="STRATEGI" IsEnabled="False" FontWeight="Bold"/><MenuItem x:Name="SmcOverlayBox" Header="SMC / ICT (OB · FVG · Liquidity)" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="TrendStrategyBox" Header="Trend" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="MomentumStrategyBox" Header="Momentum Reversal" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="BollingerStrategyBox" Header="Bollinger Re-entry" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="RejectionStrategyBox" Header="Support / Resistance Rejection" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/><MenuItem x:Name="BreakoutStrategyBox" Header="Volatility Breakout" IsCheckable="True" IsChecked="False" Checked="OverlayChanged" Unchecked="OverlayChanged"/></ContextMenu></Button.ContextMenu></Button><Button Content="VIEW" Padding="9,5" Click="Indicators_Click"><Button.ContextMenu><ContextMenu Background="#121A26" Foreground="#E5EBF4"><MenuItem Header="TAMPILAN" IsEnabled="False" FontWeight="Bold"/><Separator/><MenuItem Header="Zoom In" Click="ChartZoomIn_Click"/><MenuItem Header="Zoom Out" Click="ChartZoomOut_Click"/><MenuItem Header="Reset Chart" Click="ChartReset_Click"/></ContextMenu></Button.ContextMenu></Button><TextBlock Text="TIMEFRAME" Foreground="#8492A6" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0"/><ComboBox x:Name="TimeframeBox" Width="66" Foreground="#FFFFFF" SelectionChanged="TimeframeBox_SelectionChanged"><ComboBoxItem Content="1m" IsSelected="True"/></ComboBox><CheckBox x:Name="AutoEndBox" Visibility="Collapsed" IsChecked="True" Checked="AutoEndChanged" Unchecked="AutoEndChanged"/><TextBlock Text="SCROLL ZOOM · DRAG PAN" Foreground="#8492A6" FontSize="10" VerticalAlignment="Center" Margin="10,0,2,0"/><TextBlock Text="REALTIME" Foreground="#F8B84E" FontWeight="Bold" Margin="10,8,2,0"/></StackPanel><TextBlock Grid.Column="2" Text="CHART" Style="{StaticResource WidgetTitleStyle}" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,0,2,0"/></Grid></Border>
-        <Grid Grid.Row="1" Background="#0B111A" PreviewMouseWheel="PriceChart_MouseWheel"><Canvas x:Name="PriceChart" Background="#0B111A" Visibility="Collapsed" SizeChanged="PriceChart_SizeChanged" MouseWheel="PriceChart_MouseWheel" MouseDown="PriceChart_MouseDown" MouseMove="PriceChart_MouseMove" MouseUp="PriceChart_MouseUp"/><Border x:Name="ChartStatusOverlay" Panel.ZIndex="10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#D9070B12" Visibility="Visible"><TextBlock x:Name="ChartLoadingText" Text="LOADING MARKET..." HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Consolas" FontSize="28" FontWeight="Bold" Foreground="#8492A6"/></Border><Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="14" Background="#111B28" CornerRadius="4" Padding="8"><TextBlock x:Name="ChartInfoText" FontFamily="Consolas" Foreground="#A3B8D0" FontSize="11"/></Border><Border x:Name="ChartAlertBorder" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14" Background="#123B33" BorderBrush="#25C89A" BorderThickness="1" CornerRadius="5" Padding="10,6" Visibility="Collapsed" Panel.ZIndex="20"><StackPanel Orientation="Horizontal"><TextBlock x:Name="ChartAlertTime" FontFamily="Consolas" FontSize="10" Foreground="#72E3C3" Margin="0,0,9,0"/><TextBlock x:Name="ChartAlertMessage" Foreground="#FFFFFF" FontSize="11" TextWrapping="Wrap" MaxWidth="560"/></StackPanel></Border></Grid>
-        <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Border BorderBrush="#2E4863" BorderThickness="1" CornerRadius="5" Margin="4" Background="#0E1621"><Grid Margin="8,4"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><TextBlock Grid.ColumnSpan="2" Text="SIGNAL" Style="{StaticResource WidgetTitleStyle}" HorizontalAlignment="Center" Margin="0,0,0,3"/><StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="4,0,0,0"><TextBlock Text="NEXT CANDLE · UNPROVEN" Foreground="#9FB3CC" FontSize="8" ToolTip="Signals lock before entry candle and do not repaint."/><TextBlock x:Name="SignalText" Text="WAIT" FontFamily="Consolas" FontSize="34" FontWeight="Bold" Foreground="#59728E"/><TextBlock x:Name="SignalReason" Text="menunggu data" Foreground="#9FB3CC" FontSize="11" TextWrapping="Wrap"/></StackPanel><StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0"><Ellipse x:Name="SignalStatusDot" Width="6" Height="6" Fill="#F0B90B" Margin="0,0,4,0"/><TextBlock x:Name="SignalStatusText" Text="SYNCING" FontSize="8" FontWeight="Bold" Foreground="#E7B65A"/></StackPanel><TextBlock x:Name="SignalClock" Grid.Row="1" Grid.Column="1" Text="-:--" FontFamily="Consolas" FontSize="46" FontWeight="Bold" Foreground="#E7EDF5" VerticalAlignment="Center" Margin="10,0,10,0"/></Grid></Border><Border Grid.Column="1" BorderBrush="#2E4863" BorderThickness="1" CornerRadius="5" Margin="4" Background="#0E1621"><Grid Margin="10,3"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Grid.ColumnSpan="2" Text="LIVE CANDLE" Style="{StaticResource WidgetTitleStyle}" Margin="0"/><TextBlock x:Name="QuoteTickAge" Grid.Column="1" Text="—" FontFamily="Consolas" FontSize="9" Foreground="#9FB3CC" VerticalAlignment="Center"/></Grid><Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock x:Name="QuoteArrow" Text="·" FontFamily="Consolas" FontSize="26" FontWeight="Bold" Foreground="#59728E" VerticalAlignment="Center" Margin="0,0,7,0"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="QuoteText" Text="Menunggu" FontFamily="Consolas" FontSize="19" FontWeight="Bold" Foreground="#E7EDF5"/><TextBlock x:Name="QuoteDelta" Text="" FontFamily="Consolas" FontSize="10" Foreground="#9FB3CC"/></StackPanel></Grid><Grid Grid.Row="2" Height="6" Margin="0,3"><Border Background="#16202E" CornerRadius="3"/><Border x:Name="QuotePressureBar" Background="#59728E" CornerRadius="3" HorizontalAlignment="Left" Width="0"/></Grid><TextBlock x:Name="QuoteFlipText" Grid.Row="3" Text="" FontFamily="Consolas" FontSize="9" Foreground="#9FB3CC" TextWrapping="Wrap" Margin="0,0,0,2"/><TextBlock x:Name="QuoteSignalText" Grid.Row="4" Text="Signal: NO TRADE" FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="#E7B65A" HorizontalAlignment="Stretch" TextAlignment="Center" VerticalAlignment="Center" ToolTip="Candle M1 tertutup: gerak minimal 3 pip memberi BUY/SELL. Di bawah 3 pip memberi NO TRADE, berlaku untuk candle M1 berikutnya."/></Grid></Border><Border x:Name="StructureInfoBorder" Grid.Column="2" BorderBrush="#2E4863" BorderThickness="1" CornerRadius="5" Margin="4" Background="#0E1621"><Grid Margin="8,4"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><TextBlock Text="STRUCTURE · PATTERN" Style="{StaticResource WidgetTitleStyle}"/><TextBlock x:Name="StructCandlePattern" Grid.Row="1" FontFamily="Consolas" FontSize="9" Foreground="#9FB3CC" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="StructChartPattern" Grid.Row="2" FontFamily="Consolas" FontSize="9" Foreground="#9FB3CC" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="StructTrend" Grid.Row="3" FontFamily="Consolas" FontSize="9" Foreground="#9FB3CC" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="StructBos" Grid.Row="4" FontFamily="Consolas" FontSize="9" Foreground="#9FB3CC" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="StructSupportResistance" Grid.Row="5" FontFamily="Consolas" FontSize="8" Foreground="#9FB3CC" TextTrimming="CharacterEllipsis" ToolTip="Support hijau, resistance merah; angka menunjukkan jarak pip dari harga."/><TextBlock x:Name="StructSignal" Grid.Row="7" FontFamily="Consolas" FontSize="10" FontWeight="Bold" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,3,0,0" Foreground="#E7B65A" ToolTip="Sinyal confluence dari lima data: candle pattern, chart pattern, trend, B.O.S, support/resistance. Minimal 3 dari 5 faktor searah."/></Grid></Border><Border Grid.Column="3" BorderBrush="#2E4863" BorderThickness="1" CornerRadius="5" Margin="4" Background="#0E1621"><Grid Margin="7,4"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><TextBlock Text="MOMENTUM" Style="{StaticResource WidgetTitleStyle}"/><TextBlock x:Name="BinaryMomentumText" Grid.Row="1" FontFamily="Consolas" FontSize="9"/><TextBlock x:Name="BinaryMomentumRemark" Grid.Row="2" FontFamily="Consolas" FontSize="8" Foreground="#9FB3CC" TextWrapping="Wrap"/><TextBlock x:Name="BinaryMomentumSignal" Grid.Row="4" FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="#E7B65A" HorizontalAlignment="Center" TextAlignment="Center" VerticalAlignment="Bottom"/></Grid></Border></Grid>
+    <Grid x:Name="WorkspaceGrid">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition x:Name="MarketColumn"
+                          Width="232"/>
+        <ColumnDefinition x:Name="ChartColumn"
+                          Width="2*"/>
+        <ColumnDefinition x:Name="ToolsColumn"
+                          Width="305"/>
+      </Grid.ColumnDefinitions>
+      <Border x:Name="MarketListPanel"
+              Background="#000000"
+              BorderBrush="#202020"
+              BorderThickness="0,0,1,0">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top">
+            <TextBlock x:Name="MarketExplorerTitle"
+                       Text="PENCARIAN MARKET (ALL MARKET)"
+                       Style="{StaticResource WidgetTitleStyle}"
+                       FontSize="11"
+                       Margin="8,15,8,4"/>
+            <TextBox x:Name="SearchBox"
+                     TextChanged="SearchBox_TextChanged"
+                     ToolTip="Cari symbol atau market"/>
+            <StackPanel Margin="5,3">
+              <WrapPanel HorizontalAlignment="Center">
+                <Button Tag="ALL"
+                        Content="ALL"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#F0B90B"
+                        Click="GroupFilter_Click"/>
+                <Button Tag="OPTION"
+                        Content="OPTION"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#4D9DFF"
+                        Click="GroupFilter_Click"/>
+                <Button Tag="CURRENCIES"
+                        Content="CURRENCIES"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#25C89A"
+                        Click="GroupFilter_Click"/>
+                <Button Tag="CRYPTOCURRENCIES"
+                        Content="CRYPTOCURRENCIES"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#C792EA"
+                        Click="GroupFilter_Click"/>
+              </WrapPanel>
+              <WrapPanel HorizontalAlignment="Center">
+                <Button Tag="COMMODITIES"
+                        Content="COMMODITIES"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#E7B65A"
+                        Click="GroupFilter_Click"/>
+                <Button Tag="STOCKS"
+                        Content="STOCKS"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#52B7D8"
+                        Click="GroupFilter_Click"/>
+                <Button Tag="INDICES"
+                        Content="INDICES"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#F26D78"
+                        Click="GroupFilter_Click"/>
+                <Button Tag="FAVORITES"
+                        Content="FAVORITES"
+                        FontSize="8"
+                        Padding="4,4"
+                        Margin="1"
+                        Foreground="#F8B84E"
+                        Click="GroupFilter_Click"/>
+              </WrapPanel>
+            </StackPanel>
+            <TextBlock x:Name="MarketCountText"
+                       Foreground="#9FB3CC"
+                       Margin="14,7"/>
+          </StackPanel>
+          <ListBox x:Name="MarketList"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   Foreground="#DCE7F4"
+                   SelectionChanged="MarketList_SelectionChanged"
+                   HorizontalContentAlignment="Stretch"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   ScrollViewer.VerticalScrollBarVisibility="Visible">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="8,5">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Grid.Column="0"
+                              Margin="0,0,8,0">
+                    <TextBlock Text="{Binding Symbol}"
+                               FontFamily="Consolas"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding Name}"
+                               Foreground="#7890AC"
+                               FontSize="10"
+                               TextTrimming="CharacterEllipsis"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1"
+                              HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                      <TextBlock Text="{Binding Price}"
+                                 FontFamily="Consolas"
+                                 TextAlignment="Right"/>
+                      <Button Tag="{Binding Symbol}"
+                              Content="{Binding FavoriteGlyph}"
+                              Click="Favorite_Click"
+                              Padding="2,0"
+                              Margin="4,0,0,0"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Foreground="#F8B84E"
+                              ToolTip="Favorit"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding State}"
+                               FontSize="10"
+                               Foreground="White"
+                               TextAlignment="Right"/>
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+      <Grid Grid.Column="1">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition x:Name="BottomWidgetsRow"
+                         Height="132"
+                         MinHeight="96"
+                         MaxHeight="300"/>
+        </Grid.RowDefinitions>
+        <Border Background="#000000"
+                BorderBrush="#202020"
+                BorderThickness="0,0,0,1"
+                Padding="11">
+          <Grid x:Name="ChartToolbarGrid">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock x:Name="SelectedSymbolText"
+                         FontFamily="Consolas"
+                         FontSize="20"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SelectedNameText"
+                         Style="{StaticResource WidgetTitleStyle}"
+                         FontSize="12"
+                         VerticalAlignment="Center"
+                         Margin="10,0"/>
+              <Button Content="SYMBOL"
+                      Click="OpenMarketSearch_Click"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal">
+              <TextBlock Text="STRATEGY"
+                         Visibility="Collapsed"
+                         Foreground="#8492A6"
+                         FontSize="10"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center"
+                         Margin="10,0,2,0"/>
+              <ComboBox x:Name="StrategyBox"
+                        Visibility="Collapsed"
+                        Width="175"
+                        SelectionChanged="StrategyBox_Changed">
+                <ComboBoxItem Content="OFF"
+                              IsSelected="True"/>
+                <ComboBoxItem Content="Z-SCORE REVERSAL"/>
+                <ComboBoxItem Content="EMA 9/21 CROSS"/>
+                <ComboBoxItem Content="RSI 14 REVERSAL"/>
+                <ComboBoxItem Content="STRUCTURE BREAK"/>
+              </ComboBox>
+              <Button Content="INDIKATOR"
+                      Padding="9,5"
+                      Click="Indicators_Click">
+                <Button.ContextMenu>
+                  <ContextMenu Background="#000000"
+                               Foreground="#E5EBF4">
+                    <MenuItem Header="INDIKATOR"
+                              IsEnabled="False"
+                              FontWeight="Bold"/>
+                    <Separator/>
+                    <MenuItem x:Name="DirectionOverlayBox"
+                              Header="EMA 9 / 21"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="RsiOverlayBox"
+                              Header="RSI 14"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="BollingerOverlayBox"
+                              Header="Bollinger Bands 20, 2"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="AtrOverlayBox"
+                              Header="ATR 14"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="LevelsOverlayBox"
+                              Header="Support / Resistance"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="StructureOverlayBox"
+                              Header="BOS / CHoCH"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="SlShOverlayBox"
+                              Header="SL / SH · 4 candle"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <MenuItem x:Name="TrendChannelOverlayBox"
+                              Header="Trendline Channel"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="OverlayChanged"
+                              Unchecked="OverlayChanged"/>
+                    <Separator/>
+                    <MenuItem Header="METRIK"
+                              IsEnabled="False"
+                              FontWeight="Bold"/>
+                    <MenuItem Header="OHLC · RSI · ATR · candle timer"
+                              IsEnabled="False"/>
+                    <Separator/>
+                    <MenuItem Header="STRATEGI"
+                              FontWeight="Bold">
+                    <MenuItem Header="BOLLINGER">
+                        <MenuItem x:Name="BollingerStrategyBox"
+                                  Header="Bollinger Re-entry"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                        <MenuItem x:Name="BollingerRegimeStrategyBox"
+                                  Header="Bollinger Reverter (regime gate)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Fade band Bollinger hanya saat ADX &lt; 25 (range/chop). Adaptasi Superior Trade, belum di-backtest OTC."/>
+                    </MenuItem>
+                    <MenuItem Header="RSI">
+                        <MenuItem x:Name="MomentumStrategyBox"
+                                  Header="Momentum Reversal"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                        <MenuItem x:Name="RsiExtremeStrategyBox"
+                                  Header="RSI Extreme 20/80 (fade)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                    </MenuItem>
+                    <MenuItem Header="TREND / DONCHIAN">
+                        <MenuItem x:Name="TrendStrategyBox"
+                                  Header="Trend"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                        <MenuItem x:Name="DonchianRegimeStrategyBox"
+                                  Header="Donchian Strong-Regime"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Breakout channel Donchian 20 + ADX &gt;= 25 + EMA searah. Adaptasi Superior Trade, belum di-backtest OTC."/>
+                    </MenuItem>
+                    <MenuItem Header="STRUKTUR">
+                        <MenuItem x:Name="RejectionStrategyBox"
+                                  Header="S/R Rejection"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                        <MenuItem x:Name="SmcOverlayBox"
+                                  Header="SMC / ICT (OB · FVG · Liquidity)"
+                                  IsCheckable="True"
+                                  IsChecked="True"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Aturan tunggal yang lolos audit 1.013.216 sinyal: CHoCH + zona OTE, dinilai grade A (64,4%) / B (59,5%). Grade C tidak diambil, PUT tidak pernah disinyal."/>
+                        <MenuItem x:Name="SmcFusionStrategyBox"
+                                  Header="SMC FUSION 60 (skor ≥85)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Skor konfluensi SMC 9 komponen (0-100), bukan probabilitas menang. Evaluasi detik 58-59, expiry 60s. Skor internal, belum terbukti profit."/>
+                        <MenuItem x:Name="SnR5StrategyBox"
+                                  Header="SnR 5-Candle Break (uji DEMO)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Pivot high/low 5 candle yang sudah terkonfirmasi + breakout. Train/holdout OTC: 50,92% pada 4.224 entry holdout; bukan jaminan selalu menang."/>
+                        <MenuItem x:Name="TickReversalStrategyBox"
+                                  Header="Tick Exhaustion Reversal (UNPROVEN)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Tick nyata: dorongan 60s dominan lalu ditarik balik 20% range. Tanpa tick asli atau data stale = WAIT. Belum terbukti di OTC; target 80% belum tercapai."/>
+                    </MenuItem>
+                    <MenuItem Header="VOLATILITAS">
+                        <MenuItem x:Name="BreakoutStrategyBox"
+                                  Header="Volatility Breakout"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                        <MenuItem x:Name="DualThrustStrategyBox"
+                                  Header="Dual Thrust"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Breakout range 5 candle tertutup, k=0.5. Adaptasi je-suis-tm/quant-trading untuk M1 OTC; belum di-backtest OTC."/>
+                        <MenuItem x:Name="ZScoreStrategyBox"
+                                  Header="Z-Score + Volatility (uji DEMO)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Sinyal M1 tentatif; dikunci T-5 detik. Entry manual pada candle M1 berikutnya. Belum terbukti profit."/>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="DEMO · TIDAK BISA LIVE">
+                        <MenuItem x:Name="LookAheadStrategyBox"
+                                  Header="Look-Ahead 100% · DEMO (tidak bisa live)"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"/>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="FOREX">
+                        <MenuItem x:Name="ForexStrategyBox"
+                                  Header="FOREX · EMA 20/50 · ATR · FIBONACCI"
+                                  IsCheckable="True"
+                                  IsChecked="False"
+                                  Checked="SignalStrategyChanged"
+                                  Unchecked="SignalStrategyChanged"
+                                  ToolTip="Strategi Forex: trend EMA 20/50, candle confirmation, ATR risk, Fibonacci 38.2/50/61.8, TP1/TP2/TP3 dan SL."/>
+                    </MenuItem>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="DISCLAIMER"
+                              FontWeight="Bold"/>
+                    <MenuItem x:Name="DisclaimerOverlayBox"
+                              Header="Tampilkan Disclaimer di Chart"
+                              IsCheckable="True"
+                              IsChecked="False"
+                              Checked="DisclaimerChanged"
+                              Unchecked="DisclaimerChanged"
+                              ToolTip="Menampilkan teks peringatan di tengah chart, berkedip pelan. Teks bisa diganti lewat menu di bawah."/>
+                    <MenuItem x:Name="DisclaimerEditMenuItem"
+                              Header="Edit Teks Disclaimer..."
+                              Click="DisclaimerEdit_Click"/>
+                  </ContextMenu>
+                </Button.ContextMenu>
+              </Button>
+              <Button Content="VIEW"
+                      Padding="9,5"
+                      Click="Indicators_Click">
+                <Button.ContextMenu>
+                  <ContextMenu Background="#000000"
+                               Foreground="#E5EBF4">
+                    <MenuItem Header="TAMPILAN"
+                              IsEnabled="False"
+                              FontWeight="Bold"/>
+                    <Separator/>
+                    <MenuItem Header="Zoom In"
+                              Click="ChartZoomIn_Click"/>
+                    <MenuItem Header="Zoom Out"
+                              Click="ChartZoomOut_Click"/>
+                    <MenuItem Header="Reset Chart"
+                              Click="ChartReset_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="SplitChartOnlyMenuItem"
+                              IsCheckable="True"
+                              Header="Split screen · chart saja"
+                              Checked="SplitViewChanged"
+                              Unchecked="SplitViewChanged"/>
+                    <MenuItem x:Name="SplitMarketMenuItem"
+                              IsCheckable="True"
+                              Header="Split screen · daftar market"
+                              Checked="SplitViewChanged"
+                              Unchecked="SplitViewChanged"/>
+                    <MenuItem x:Name="SplitToolsMenuItem"
+                              IsCheckable="True"
+                              Header="Split screen · panel tools"
+                              Checked="SplitViewChanged"
+                              Unchecked="SplitViewChanged"/>
+                  </ContextMenu>
+                </Button.ContextMenu>
+              </Button>
+              <TextBlock x:Name="TimeframeLabelText"
+                         Text="TIMEFRAME"
+                         Foreground="#8492A6"
+                         FontSize="10"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center"
+                         Margin="4,0"/>
+              <ComboBox x:Name="TimeframeBox"
+                        Width="66"
+                        Foreground="#FFFFFF"
+                        SelectionChanged="TimeframeBox_SelectionChanged">
+                <ComboBoxItem Content="1m"
+                              IsSelected="True"/>
+              </ComboBox>
+              <CheckBox x:Name="AutoEndBox"
+                        Visibility="Collapsed"
+                        IsChecked="True"
+                        Checked="AutoEndChanged"
+                        Unchecked="AutoEndChanged"/>
+              <TextBlock x:Name="ChartGestureHintText"
+                         Text="SCROLL ZOOM · DRAG PAN"
+                         Foreground="#8492A6"
+                         FontSize="10"
+                         VerticalAlignment="Center"
+                         Margin="10,0,2,0"/>
+              <TextBlock x:Name="RealtimeLabelText"
+                         Text="REALTIME"
+                         Foreground="#F8B84E"
+                         FontWeight="Bold"
+                         Margin="10,8,2,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+              <TextBlock x:Name="ChartHeaderText"
+                         Text="CHART"
+                         Style="{StaticResource WidgetTitleStyle}"
+                         FontSize="16"
+                         VerticalAlignment="Top"
+                         Margin="0,0,2,0"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+        <Grid Grid.Row="1"
+              Background="#000000"
+              PreviewMouseWheel="PriceChart_MouseWheel">
+          <Canvas x:Name="PriceChart"
+                  Background="#000000"
+                  Visibility="Collapsed"
+                  SizeChanged="PriceChart_SizeChanged"
+                  MouseWheel="PriceChart_MouseWheel"
+                  MouseDown="PriceChart_MouseDown"
+                  MouseMove="PriceChart_MouseMove"
+                  MouseUp="PriceChart_MouseUp"/>
+          <Canvas x:Name="ChartHoverLayer"
+                  Panel.ZIndex="2"
+                  Background="Transparent"
+                  IsHitTestVisible="False"/>
+          <TextBlock x:Name="DisclaimerOverlayText"
+                     Panel.ZIndex="9"
+                     Text="JUDOL"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Top"
+                     Margin="0,34,0,0"
+                     Padding="8,0"
+                     FontFamily="Consolas"
+                     FontSize="42"
+                     FontWeight="Bold"
+                     Foreground="#F0B90B"
+                     Background="#C0101722"
+                     IsHitTestVisible="False"
+                     Visibility="Collapsed">
+            <TextBlock.Effect>
+              <DropShadowEffect Color="#000000"
+                                BlurRadius="10"
+                                ShadowDepth="2"
+                                Opacity="0.95"/>
+            </TextBlock.Effect>
+          </TextBlock>
+          <Border x:Name="ChartStatusOverlay"
+                  Panel.ZIndex="10"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Background="#FF000000"
+                  Visibility="Visible">
+            <Grid ClipToBounds="True">
+              <Rectangle Height="1"
+                         VerticalAlignment="Top"
+                         Fill="#1631D2F2"
+                         Opacity="0.55"/>
+              <StackPanel HorizontalAlignment="Center"
+                          VerticalAlignment="Center">
+                <TextBlock Text="OPEN TERMINAL"
+                           HorizontalAlignment="Center"
+                           FontFamily="Consolas"
+                           FontSize="10"
+                           FontWeight="Bold"
+                           Foreground="#54738A"
+                           Margin="0,0,0,12"/>
+                <TextBlock x:Name="ChartLoadingText"
+                           Text="LOADING..."
+                           HorizontalAlignment="Center"
+                           FontFamily="Consolas"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Foreground="#31D2F2">
+                  <TextBlock.Effect>
+                    <DropShadowEffect Color="#31D2F2"
+                                      BlurRadius="18"
+                                      ShadowDepth="0"
+                                      Opacity="0.75"/>
+                  </TextBlock.Effect>
+                </TextBlock>
+                <Border x:Name="LoadingTrack"
+                        Width="200"
+                        Height="2"
+                        Margin="0,16,0,0"
+                        Background="#182638">
+                  <Border x:Name="LoadingPulse"
+                          Width="42"
+                          HorizontalAlignment="Left"
+                          Background="#31D2F2">
+                    <Border.Effect>
+                      <DropShadowEffect Color="#31D2F2"
+                                        BlurRadius="8"
+                                        ShadowDepth="0"
+                                        Opacity="0.9"/>
+                    </Border.Effect>
+                  </Border>
+                </Border>
+                <TextBlock Text="INITIALIZING MARKET FEED"
+                           HorizontalAlignment="Center"
+                           FontFamily="Consolas"
+                           FontSize="9"
+                           Foreground="#587086"
+                           Margin="0,10,0,0"/>
+              </StackPanel>
+              <Rectangle Height="2"
+                         VerticalAlignment="Top"
+                         Fill="#3131D2F2"
+                         IsHitTestVisible="False">
+                <Rectangle.RenderTransform>
+                  <TranslateTransform x:Name="LoadingScanTransform"/>
+                </Rectangle.RenderTransform>
+              </Rectangle>
+            </Grid>
+          </Border>
+          <Border HorizontalAlignment="Left"
+                  VerticalAlignment="Top"
+                  Margin="14"
+                  Background="#000000"
+                  CornerRadius="4"
+                  Padding="8">
+            <TextBlock x:Name="ChartInfoText"
+                       FontFamily="Consolas"
+                       Foreground="#A3B8D0"
+                       FontSize="11"/>
+          </Border>
+          <Border x:Name="SmcDashboard"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Stretch"
+                  Margin="0"
+                  Padding="12,10"
+                  Background="#F0080C12"
+                  BorderBrush="#1F2A3A"
+                  BorderThickness="0,0,1,0"
+                  IsHitTestVisible="False"
+                  Visibility="Collapsed"
+                  Panel.ZIndex="11">
+            <StackPanel Width="212">
+              <TextBlock Text="DX CONFIDENCE SCORE"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock Text="FUSION 60 · skor strategi internal, BUKAN probabilitas menang"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="8"
+                         TextWrapping="Wrap"/>
+              <StackPanel Orientation="Horizontal"
+                          Margin="0,2,0,0">
+                <TextBlock Text="CALL "
+                           Foreground="#8FA3BD"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           VerticalAlignment="Bottom"/>
+                <TextBlock x:Name="FusionCallScoreText"
+                           Text="—"
+                           Foreground="#25C89A"
+                           FontFamily="Consolas"
+                           FontSize="22"
+                           FontWeight="Bold"/>
+                <TextBlock Text="  PUT "
+                           Foreground="#8FA3BD"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           VerticalAlignment="Bottom"/>
+                <TextBlock x:Name="FusionPutScoreText"
+                           Text="—"
+                           Foreground="#F45B69"
+                           FontFamily="Consolas"
+                           FontSize="22"
+                           FontWeight="Bold"/>
+                <TextBlock Text=" /100"
+                           Foreground="#5C7391"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           VerticalAlignment="Bottom"
+                           Margin="4,0,0,4"/>
+              </StackPanel>
+              <TextBlock x:Name="SmcScoreText"
+                           Text="0"
+                           Foreground="#E7B65A"
+                           FontFamily="Consolas"
+                           FontSize="30"
+                           FontWeight="Bold"/>
+              <TextBlock x:Name="SmcScoreDetail"
+                         Text="SCANNING"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,0,0,8"/>
+              <TextBlock Text="DX SIGNAL"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcSignalText"
+                         Text="WAIT"
+                         Foreground="#E7B65A"
+                         FontFamily="Consolas"
+                         FontSize="26"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcSignalDetail"
+                         Text="SMC · UNPROVEN"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="MARKET REGIME"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcRegimeText"
+                         Text="—"
+                         Foreground="#E7EDF5"
+                         FontFamily="Consolas"
+                         FontSize="17"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcRegimeDetail"
+                         Text="—"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="TIMEFRAME ALIGNMENT"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"
+                         Margin="0,0,0,3"/>
+              <TextBlock x:Name="SmcAlignmentText"
+                         Text="—"
+                         Foreground="#9FB3CC"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         LineHeight="14"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="BOS / CHoCH"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcStructureText"
+                         Text="NEUTRAL"
+                         Foreground="#E7EDF5"
+                         FontFamily="Consolas"
+                         FontSize="16"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcStructureDetail"
+                         Text="Scanning Structure"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="DX DIVERGENCE"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcDivergenceText"
+                         Text="NEUTRAL"
+                         Foreground="#E7EDF5"
+                         FontFamily="Consolas"
+                         FontSize="16"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcDivergenceDetail"
+                         Text="(RSI 50)"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="VOLATILITY"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <Border x:Name="SmcVolatilityTrack"
+                      Height="12"
+                      Margin="0,3,0,2"
+                      CornerRadius="2"
+                      Background="#1A2331">
+                <Border x:Name="SmcVolatilityFill"
+                        HorizontalAlignment="Left"
+                        Width="0"
+                        CornerRadius="2"
+                        Background="#F45B69"/>
+              </Border>
+              <TextBlock x:Name="SmcVolatilityText"
+                         Text="—"
+                         Foreground="#9FB3CC"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="NEWS FILTER"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock Text="OFF"
+                         Foreground="#F45B69"
+                         FontFamily="Consolas"
+                         FontSize="16"
+                         FontWeight="Bold"/>
+              <TextBlock Text="Tidak tersedia · tanpa feed berita"
+                         Foreground="#5C7391"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,10"/>
+              <TextBlock Text="WHY THIS SIGNAL?"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcWhyText"
+                         Text="—"
+                         Foreground="#9FB3CC"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         TextWrapping="Wrap"
+                         Margin="0,2,0,10"/>
+              <TextBlock Text="FUSION BREAKDOWN"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="FusionBreakdownText"
+                         Text="Aktifkan SMC FUSION 60 di INDIKATOR > STRATEGI"
+                         Foreground="#9FB3CC"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         TextWrapping="Wrap"
+                         Margin="0,2,0,10"/>
+              <TextBlock Text="DX COUNTS"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcCountsText"
+                         Text="Total: 0 · Sureshots: 0 · OTM: 0"
+                         Foreground="#9FB3CC"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Margin="0,2,0,10"/>
+              <TextBlock Text="SMART ENTRY ZONE"
+                         Foreground="#8FA3BD"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="SmcEntryZoneText"
+                         Text="—"
+                         Foreground="#E7EDF5"
+                         FontFamily="Consolas"
+                         FontSize="13"
+                         FontWeight="Bold"/>
+              <TextBlock x:Name="FusionStatsText"
+                         Text="FUSION 60 · statistik menunggu sinyal tercatat"
+                         Foreground="#9FB3CC"
+                         FontFamily="Consolas"
+                         FontSize="8"
+                         TextWrapping="Wrap"/>
+              <TextBlock Text="UNPROVEN · bukan rekomendasi entry"
+                         Foreground="#F0B90B"
+                         FontFamily="Consolas"
+                         FontSize="8"
+                         TextWrapping="Wrap"
+                         Margin="0,6,0,0"/>
+            </StackPanel>
+          </Border>
+          <Border x:Name="ChartAlertBorder"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Bottom"
+                  Margin="0,0,0,14"
+                  Background="#123B33"
+                  BorderBrush="#25C89A"
+                  BorderThickness="1"
+                  CornerRadius="5"
+                  Padding="10,6"
+                  Visibility="Collapsed"
+                  Panel.ZIndex="20">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock x:Name="ChartAlertTime"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         Foreground="#72E3C3"
+                         Margin="0,0,9,0"/>
+              <TextBlock x:Name="ChartAlertMessage"
+                         Foreground="#FFFFFF"
+                         FontSize="11"
+                         TextWrapping="Wrap"
+                         MaxWidth="560"/>
+            </StackPanel>
+          </Border>
+        </Grid>
+        <Border x:Name="BalanceStrip"
+                Grid.Row="2"
+                Margin="4,4,4,0"
+                Padding="14,8"
+                CornerRadius="5"
+                BorderBrush="#1F5A73"
+                BorderThickness="1">
+          <Border.Background>
+            <LinearGradientBrush StartPoint="0,0"
+                                 EndPoint="1,0">
+              <GradientStop Color="#06141F"
+                            Offset="0"/>
+              <GradientStop Color="#000000"
+                            Offset="0.55"/>
+              <GradientStop Color="#071A16"
+                            Offset="1"/>
+            </LinearGradientBrush>
+          </Border.Background>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center">
+              <Ellipse Width="9"
+                       Height="9"
+                       Fill="#25C89A"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0">
+                <Ellipse.Effect>
+                  <DropShadowEffect Color="#25C89A"
+                                    BlurRadius="10"
+                                    ShadowDepth="0"
+                                    Opacity="0.9"/>
+                </Ellipse.Effect>
+              </Ellipse>
+              <TextBlock Text="SALDO / BALANCE"
+                         FontFamily="Consolas"
+                         FontSize="11"
+                         FontWeight="Bold"
+                         Foreground="#7FB8D4"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock x:Name="AccountBalanceText"
+                       Grid.Column="1"
+                       Text="$—"
+                       FontFamily="Consolas"
+                       FontSize="42"
+                       FontWeight="Bold"
+                       Foreground="#72E3C3"
+                       VerticalAlignment="Center"
+                       Margin="28,0,0,0">
+              <TextBlock.Effect>
+                <DropShadowEffect Color="#25C89A"
+                                  BlurRadius="18"
+                                  ShadowDepth="0"
+                                  Opacity="0.65"/>
+              </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock x:Name="AccountBalanceDelta"
+                       Grid.Column="2"
+                       Text="SESI —"
+                       FontFamily="Consolas"
+                       FontSize="15"
+                       FontWeight="Bold"
+                       Foreground="#9FB3CC"
+                       VerticalAlignment="Center"
+                       Margin="24,0,0,0"
+                       ToolTip="Perubahan saldo sejak aplikasi dibuka (sesi ini)."/>
+            <Border Grid.Column="3"
+                    Height="2"
+                    VerticalAlignment="Center"
+                    Margin="24,0,4,0"
+                    CornerRadius="1">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0,0"
+                                     EndPoint="1,0">
+                  <GradientStop Color="#25C89A"
+                                Offset="0"/>
+                  <GradientStop Color="#1F5A73"
+                                Offset="0.6"/>
+                  <GradientStop Color="#00000000"
+                                Offset="1"/>
+                </LinearGradientBrush>
+              </Border.Background>
+            </Border>
+            <ToggleButton x:Name="BalanceMaskToggle"
+                          Grid.Column="4"
+                          Width="26"
+                          Height="26"
+                          Margin="12,0,2,0"
+                          VerticalAlignment="Center"
+                          Cursor="Hand"
+                          Background="Transparent"
+                          BorderBrush="#1F5A73"
+                          BorderThickness="1"
+                          IsChecked="False"
+                          Checked="BalanceMask_Changed"
+                          Unchecked="BalanceMask_Changed"
+                          ToolTip="Sembunyikan / tampilkan nominal saldo">
+              <Grid Width="16"
+                    Height="16">
+                <Path Data="M 8,2 C 13,2 16,8 16,8 C 16,8 13,14 8,14 C 3,14 0,8 0,8 C 0,8 3,2 8,2 Z"
+                      Stroke="#72E3C3"
+                      StrokeThickness="1.2"
+                      Fill="Transparent"/>
+                <Ellipse Width="5"
+                         Height="5"
+                         Fill="#72E3C3"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+                <Line x:Name="BalanceMaskSlash"
+                      X1="1"
+                      Y1="15"
+                      X2="15"
+                      Y2="1"
+                      Stroke="#F26D78"
+                      StrokeThickness="1.6"
+                      Visibility="Collapsed"/>
+              </Grid>
+            </ToggleButton>
+          </Grid>
+        </Border>
+        <Grid Grid.Row="3">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.35*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <Border BorderBrush="{StaticResource Border}"
+                  BorderThickness="1"
+                  CornerRadius="5"
+                  Margin="4"
+                  Background="#000000">
+            <Grid Margin="12,6">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock Grid.ColumnSpan="2"
+                         Text="SIGNAL"
+                         Style="{StaticResource WidgetTitleStyle}"
+                         HorizontalAlignment="Center"
+                         Margin="0,0,0,3"/>
+              <StackPanel Grid.Row="1"
+                          VerticalAlignment="Center"
+                          Margin="4,4,0,0">
+                <TextBlock Text="M1 · T-5s LOCK · ENTRY NEXT CANDLE"
+                           Style="{StaticResource WidgetLabelStyle}"
+                           FontSize="9"
+                           ToolTip="Sinyal dikunci sebelum candle close. Pada pembukaan candle berikutnya aplikasi mengirim order DEMO $1 dengan durasi 60 detik. LIVE account ditolak."/>
+                <TextBlock x:Name="SignalText"
+                           Text="WAIT"
+                           FontFamily="Consolas"
+                           FontSize="34"
+                           FontWeight="Bold"
+                           Foreground="#59728E"
+                           Margin="0,3,0,0"/>
+                <TextBlock x:Name="SignalReason"
+                           Text="menunggu data"
+                           Foreground="#9FB3CC"
+                           FontSize="11"
+                           TextWrapping="Wrap"/>
+              </StackPanel>
+              <StackPanel Grid.Row="2"
+                          Grid.ColumnSpan="2"
+                          Orientation="Horizontal"
+                          HorizontalAlignment="Center"
+                          Margin="0,2,0,0">
+                <Ellipse x:Name="SignalStatusDot"
+                         Width="6"
+                         Height="6"
+                         Fill="#F0B90B"
+                         Margin="0,0,4,0"/>
+                <TextBlock x:Name="SignalStatusText"
+                           Text="SYNCING"
+                           FontSize="8"
+                           FontWeight="Bold"
+                           Foreground="#E7B65A"/>
+              </StackPanel>
+              <TextBlock x:Name="SignalClock"
+                         Grid.Row="1"
+                         Grid.Column="1"
+                         Text="-:--"
+                         FontFamily="Consolas"
+                         FontSize="46"
+                         FontWeight="Bold"
+                         Foreground="#E7EDF5"
+                         VerticalAlignment="Center"
+                         Margin="10,0,10,0"/>
+            </Grid>
+          </Border>
+          <Border Grid.Column="1"
+                  BorderBrush="{StaticResource Border}"
+                  BorderThickness="1"
+                  CornerRadius="5"
+                  Margin="4"
+                  Background="#000000">
+            <Grid Margin="12,6">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="LIVE CANDLE"
+                           Style="{StaticResource WidgetTitleStyle}"
+                           Margin="0,0,12,0"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="QuoteTickAge"
+                           Grid.Column="1"
+                           Text="LIVE · —"
+                           FontFamily="Consolas"
+                           FontSize="9"
+                           Foreground="#9FB3CC"
+                           VerticalAlignment="Center"/>
+              </Grid>
+              <Grid Grid.Row="1"
+                    Margin="0,3,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="QuoteArrow"
+                           Text="·"
+                           FontFamily="Consolas"
+                           FontSize="23"
+                           FontWeight="Bold"
+                           Foreground="#E7B65A"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="QuoteText"
+                           Grid.Column="1"
+                           Text="Menunggu"
+                           FontFamily="Consolas"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           Foreground="#E7EDF5"
+                           VerticalAlignment="Center"/>
+              </Grid>
+              <TextBlock x:Name="QuoteDelta"
+                         Grid.Row="2"
+                         Margin="20,0,0,2"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="SemiBold"
+                         Foreground="#9FB3CC"
+                         Text="C — · 0,000% sesi"/>
+              <Grid Grid.Row="3"
+                    Height="5"
+                    Margin="0,3,0,6">
+                <Border Background="#16202E"
+                        CornerRadius="3"/>
+                <Border x:Name="QuotePressureBar"
+                        Background="#59728E"
+                        CornerRadius="3"
+                        HorizontalAlignment="Left"
+                        Width="0"/>
+              </Grid>
+              <TextBlock x:Name="QuoteCandleStats"
+                         Grid.Row="4"
+                         Text="O — · H — · L — · BODY — · RANGE —"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Foreground="#AFC0D2"
+                         LineHeight="16"/>
+              <TextBlock x:Name="QuoteFlipText"
+                         Grid.Row="5"
+                         Text=""
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Foreground="#9FB3CC"
+                         LineHeight="16"
+                         TextWrapping="Wrap"
+                         Margin="0,5,0,0"/>
+              <TextBlock x:Name="QuoteSignalText"
+                         Grid.Row="5"
+                         Text="Candle tertutup: — · info"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"
+                         Foreground="#E7B65A"
+                         HorizontalAlignment="Stretch"
+                         TextAlignment="Center"
+                         VerticalAlignment="Bottom"
+                         Margin="0,6,0,0"
+                         ToolTip="Informasi arah candle M1 yang sudah tutup, bukan sinyal entry. Gunakan panel SIGNAL: preview sebelum close, lalu entry manual pada candle M1 berikutnya jika LOCKED."/>
+            </Grid>
+          </Border>
+          <Border x:Name="StructureInfoBorder"
+                  Grid.Column="2"
+                  BorderBrush="{StaticResource Border}"
+                  BorderThickness="1"
+                  CornerRadius="5"
+                  Margin="4"
+                  Background="#000000">
+            <Grid Margin="10,6">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock Text="STRUCTURE · PATTERN"
+                         Style="{StaticResource WidgetTitleStyle}"/>
+              <Grid Grid.Row="1"
+                    Margin="0,5,0,2">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="StructCandlePattern"
+                           Style="{StaticResource WidgetDataStyle}"
+                           Margin="0,1"/>
+                <TextBlock x:Name="StructChartPattern"
+                           Grid.Row="1"
+                           Style="{StaticResource WidgetDataStyle}"
+                           Margin="0,1"/>
+                <TextBlock x:Name="StructTrend"
+                           Grid.Row="2"
+                           Style="{StaticResource WidgetDataStyle}"
+                           Margin="0,1"/>
+                <TextBlock x:Name="StructBos"
+                           Grid.Row="3"
+                           Style="{StaticResource WidgetDataStyle}"
+                           Margin="0,1"/>
+                <TextBlock x:Name="StructSupportResistance"
+                           Grid.Row="4"
+                           Style="{StaticResource WidgetDataStyle}"
+                           Margin="0,1"
+                           ToolTip="Support hijau, resistance merah; angka menunjukkan jarak pip dari harga."/>
+                <TextBlock x:Name="StructScore"
+                           Grid.Row="5"
+                           FontFamily="Consolas"
+                           FontSize="9"
+                           FontWeight="SemiBold"
+                           Foreground="#F0B90B"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,3,0,0"/>
+              </Grid>
+              <TextBlock x:Name="StructSignal"
+                         Grid.Row="2"
+                         Text="SIGNAL: NO TRADE"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"
+                         TextAlignment="Center"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Bottom"
+                         Margin="0,3,0,0"
+                         Foreground="#E7B65A"
+                         ToolTip="Sinyal confluence dari lima data: candle pattern, chart pattern, trend, B.O.S, support/resistance. Minimal 3 dari 5 faktor searah."/>
+            </Grid>
+          </Border>
+          <Border Grid.Column="3"
+                  BorderBrush="{StaticResource Border}"
+                  BorderThickness="1"
+                  CornerRadius="5"
+                  Margin="4"
+                  Background="#000000">
+            <Grid Margin="10,6">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+              <TextBlock Text="MOMENTUM"
+                         Style="{StaticResource WidgetTitleStyle}"/>
+              <TextBlock x:Name="BinaryMomentumText"
+                         Grid.Row="1"
+                         Style="{StaticResource WidgetDataStyle}"
+                         LineHeight="17"
+                         Margin="0,6,0,3"/>
+              <TextBlock x:Name="BinaryMomentumRemark"
+                         Grid.Row="2"
+                         Style="{StaticResource WidgetLabelStyle}"
+                         FontSize="9"
+                         TextWrapping="Wrap"/>
+              <TextBlock x:Name="BinaryMomentumScore"
+                         Grid.Row="3"
+                         FontFamily="Consolas"
+                         FontSize="9"
+                         Foreground="#F0B90B"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Top"
+                         Margin="0,5,0,0"/>
+              <TextBlock x:Name="BinaryMomentumSignal"
+                         Grid.Row="4"
+                         FontFamily="Consolas"
+                         FontSize="10"
+                         FontWeight="Bold"
+                         Foreground="#E7B65A"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         VerticalAlignment="Bottom"/>
+            </Grid>
+          </Border>
+        </Grid>
       </Grid>
-      <Border Grid.Column="2" Background="#0B111A" BorderBrush="{StaticResource Border}" BorderThickness="1,0,0,0"><Grid><Grid.RowDefinitions><RowDefinition Height="230"/><RowDefinition Height="*"/><RowDefinition Height="230"/></Grid.RowDefinitions><TabControl Background="#0B111A" BorderBrush="{StaticResource Border}"><TabItem Header="FEED"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel><TextBlock x:Name="FeedText" FontFamily="Consolas" Padding="7" TextWrapping="Wrap"/><Border x:Name="MarketQualityBorder" Margin="7,2" Background="#173F38" BorderBrush="#25C89A" BorderThickness="1" CornerRadius="4" Padding="7,5"><TextBlock x:Name="MarketQualityText" FontFamily="Consolas" Foreground="#8FA8C4" FontSize="10"/></Border><TextBlock Text="Jurnal lokal menyimpan raw tick dan candle M1." Foreground="#9FB3CC" TextWrapping="Wrap" Margin="7" FontSize="11"/><StackPanel Orientation="Horizontal" Margin="4"><Button Content="Buka Folder Data" Click="OpenDataFolder_Click"/><Button Content="Export Tick CSV" Click="ExportTicks_Click"/></StackPanel></StackPanel></ScrollViewer></TabItem><TabItem Header="RESULT" IsSelected="True"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><Border Background="#0E1621" BorderBrush="#2E4863" BorderThickness="0,0,0,1" Padding="10,8"><StackPanel><TextBlock Text="WINRATE SINYAL" Foreground="#9FB3CC" FontSize="10" FontWeight="Bold"/><TextBlock x:Name="ResultRateText" Text="—" FontFamily="Consolas" FontSize="38" FontWeight="Bold" Foreground="#9FB3CC"/><TextBlock x:Name="ResultNoteText" Text="Belum ada entry" Foreground="#9FB3CC" FontSize="10" TextWrapping="Wrap"/></StackPanel></Border><Grid Grid.Row="1" Margin="8,8,8,4"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="ENTRY" Foreground="#9FB3CC" FontSize="9"/><TextBlock x:Name="ResultTotalText" Text="0" FontFamily="Consolas" FontSize="17" Foreground="#E7EDF5"/></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="PROFIT" Foreground="#9FB3CC" FontSize="9"/><TextBlock x:Name="ResultWinText" Text="0" FontFamily="Consolas" FontSize="17" Foreground="#25C89A"/></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="LOSS" Foreground="#9FB3CC" FontSize="9"/><TextBlock x:Name="ResultLossText" Text="0" FontFamily="Consolas" FontSize="17" Foreground="#F45B69"/></StackPanel><StackPanel Grid.Column="3"><TextBlock Text="DRAW" Foreground="#9FB3CC" FontSize="9"/><TextBlock x:Name="ResultDrawText" Text="0" FontFamily="Consolas" FontSize="17" Foreground="#E7B65A"/></StackPanel></Grid><StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5,2"><Button Content="Buka Jurnal" Click="OpenJournal_Click" ToolTip="data/signal-journal.csv"/><Button Content="Reset" Click="ResultReset_Click" ToolTip="Kosongkan statistik sesi ini"/></StackPanel><TextBlock Grid.Row="3" Margin="10,6" Foreground="#9FB3CC" FontSize="10" TextWrapping="Wrap" Text="Hasil dihitung dari close vs open candle entry. DRAW = candle flat, stake kembali. Statistik ini sesi berjalan saja; riwayat penuh ada di signal-journal.csv. Filter volatilitas + z-score: 50,61% holdout (batas bawah 95% 49,7%). Tetap UNPROVEN. Angka di bawah 100 entry belum berarti."/></Grid></TabItem><TabItem Header="NEWS"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><TextBlock x:Name="NewsStatusText" Foreground="#9FB3CC" FontSize="10" Margin="5"/><DataGrid x:Name="NewsGrid" Grid.Row="1" AutoGenerateColumns="True" CanUserAddRows="False"/></Grid></TabItem><TabItem Header="TAPE"><DataGrid x:Name="TapeGrid" AutoGenerateColumns="True" CanUserAddRows="False"/></TabItem><TabItem Header="JURNAL"><Grid Margin="6"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="88"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Grid.ColumnSpan="2" Text="JURNAL TRADING-KU" Style="{StaticResource WidgetTitleStyle}"/><TextBlock Grid.Row="1" Text="TANGGAL" Foreground="#9FB3CC" FontSize="9" VerticalAlignment="Center"/><DatePicker x:Name="TradingJournalDate" Grid.Row="1" Grid.Column="1" SelectedDateChanged="TradingJournalDate_Changed" Background="#0B111A" Foreground="#E7EDF5" BorderBrush="{StaticResource Border}" Height="28"/><TextBlock Grid.Row="2" Text="SALDO AWAL" Foreground="#9FB3CC" FontSize="9" VerticalAlignment="Center"/><TextBox x:Name="TradingJournalBalance" Grid.Row="2" Grid.Column="1" TextChanged="TradingJournalField_Changed" LostFocus="TradingJournalField_LostFocus" HorizontalContentAlignment="Right" Margin="3,2" Padding="6,3"/><TextBlock Grid.Row="3" Text="TARGET PROFIT" Foreground="#9FB3CC" FontSize="9" VerticalAlignment="Center"/><TextBox x:Name="TradingJournalTarget" Grid.Row="3" Grid.Column="1" TextChanged="TradingJournalField_Changed" LostFocus="TradingJournalField_LostFocus" HorizontalContentAlignment="Right" Margin="3,2" Padding="6,3"/><TextBlock Grid.Row="4" Text="STOP LOSS" Foreground="#9FB3CC" FontSize="9" VerticalAlignment="Center"/><TextBox x:Name="TradingJournalStopLoss" Grid.Row="4" Grid.Column="1" TextChanged="TradingJournalField_Changed" LostFocus="TradingJournalField_LostFocus" HorizontalContentAlignment="Right" Margin="3,2" Padding="6,3"/><TextBlock x:Name="TradingJournalSaveStatus" Grid.Row="5" Grid.ColumnSpan="2" Text="Simpan otomatis ke Excel" Foreground="#9FB3CC" FontSize="9" TextAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,3"/><Button Grid.Row="6" Grid.ColumnSpan="2" Content="BUKA FILE EXCEL" Click="OpenTradingJournal_Click" HorizontalAlignment="Stretch" Padding="6,4"/></Grid></TabItem></TabControl><GroupBox Grid.Row="1" Header="NOTIFIKASI"><ListBox x:Name="ChartAlertList" BorderThickness="0" Background="Transparent" Foreground="#DCE7F4" ScrollViewer.VerticalScrollBarVisibility="Auto"><ListBox.ItemTemplate><DataTemplate><StackPanel Margin="0,0,0,6"><TextBlock Text="{Binding Time}" FontFamily="Consolas" FontSize="10" Foreground="#9FB3CC"/><TextBlock Text="{Binding Message}" TextWrapping="Wrap"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox></GroupBox><GroupBox Grid.Row="2" Header="SL / SH LOCK"><TextBlock Text="Marker terkunci saat candle selesai. Database lokal menjaga marker tetap ada setelah aplikasi dibuka ulang." TextWrapping="Wrap" Foreground="#9FB3CC" Padding="7"/></GroupBox></Grid></Border>
-      <Border x:Name="BottomAlertBorder" Grid.ColumnSpan="3" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,16" Background="#123B33" BorderBrush="#25C89A" BorderThickness="1" CornerRadius="6" Padding="12,8" Visibility="Collapsed" Panel.ZIndex="20">
+      <Border x:Name="SideToolsPanel"
+              Grid.Column="2"
+              Background="#000000"
+              BorderBrush="#202020"
+              BorderThickness="1,0,0,0">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition x:Name="SideToolsTopRow"
+                           Height="230"
+                           MinHeight="145"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition x:Name="SideToolsBottomRow"
+                           Height="230"
+                           MinHeight="145"/>
+          </Grid.RowDefinitions>
+          <TabControl Background="#000000"
+                      BorderBrush="#202020">
+            <TabItem Header="FEED">
+              <ScrollViewer VerticalScrollBarVisibility="Auto"
+                            Padding="4,3">
+                <StackPanel>
+                <TextBlock Text="FEED"
+                           Style="{StaticResource WidgetTitleStyle}"
+                           Margin="12,10,12,0"/>
+                <TextBlock x:Name="FeedText"
+                           FontFamily="Consolas"
+                           FontSize="10"
+                           LineHeight="17"
+                           Padding="12,9"
+                           Foreground="#DCE7F4"
+                           TextWrapping="Wrap"/>
+                  <Border x:Name="MarketQualityBorder"
+                          Margin="7,2"
+                          Background="#173F38"
+                          BorderBrush="#25C89A"
+                          BorderThickness="1"
+                          CornerRadius="4"
+                          Padding="7,5">
+                    <TextBlock x:Name="MarketQualityText"
+                               FontFamily="Consolas"
+                               Foreground="#8FA8C4"
+                               FontSize="10"/>
+                  </Border>
+                  <TextBlock Text="Jurnal lokal menyimpan raw tick dan candle M1."
+                             Foreground="#9FB3CC"
+                             TextWrapping="Wrap"
+                             Margin="7"
+                             FontSize="11"/>
+                  <StackPanel Orientation="Horizontal"
+                              Margin="4">
+                    <Button Content="Buka Folder Data"
+                            Click="OpenDataFolder_Click"/>
+                    <Button Content="Export Tick CSV"
+                            Click="ExportTicks_Click"/>
+                  </StackPanel>
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem Header="RESULT"
+                     IsSelected="True">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Background="#000000"
+                        BorderBrush="{StaticResource Border}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,9">
+                  <StackPanel>
+                    <TextBlock Text="WINRATE SINYAL"
+                               Style="{StaticResource WidgetTitleStyle}"
+                               HorizontalAlignment="Left"/>
+                    <TextBlock x:Name="ResultStrategyText"
+                               Text="STRATEGI: OFF"
+                               Style="{StaticResource WidgetDataStyle}"
+                               Foreground="#31D2F2"
+                               Margin="0,5,0,0"/>
+                    <TextBlock x:Name="ResultRateText"
+                               Text="—"
+                               FontFamily="Consolas"
+                               FontSize="38"
+                               FontWeight="Bold"
+                               Foreground="#E7EDF5"
+                               Margin="0,3,0,0"/>
+                    <TextBlock x:Name="ResultNoteText"
+                               Text="Belum ada entry"
+                               Style="{StaticResource WidgetLabelStyle}"
+                               FontSize="10"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
+                    <!-- Statistik jurnal penuh: berlaku lintas simbol & lintas sesi,
+                         sehingga angkanya tidak kosong saat aplikasi baru dibuka. -->
+                    <Border Background="#0B1118"
+                            BorderBrush="{StaticResource Border}"
+                            BorderThickness="0,1,0,0"
+                            Margin="0,7,0,0"
+                            Padding="0,6,0,0">
+                      <StackPanel>
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                          </Grid.ColumnDefinitions>
+                          <TextBlock Text="JURNAL"
+                                     Style="{StaticResource WidgetLabelStyle}"
+                                     FontSize="9"
+                                     VerticalAlignment="Center"/>
+                          <TextBlock x:Name="JournalRateText"
+                                     Grid.Column="1"
+                                     Text="—"
+                                     FontFamily="Consolas"
+                                     FontSize="15"
+                                     FontWeight="Bold"
+                                     HorizontalAlignment="Right"
+                                     Foreground="#E7EDF5"/>
+                        </Grid>
+                        <TextBlock x:Name="JournalDetailText"
+                                   Text="belum ada data jurnal"
+                                   Style="{StaticResource WidgetLabelStyle}"
+                                   FontSize="9"
+                                   TextWrapping="Wrap"
+                                   Margin="0,2,0,0"/>
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </Border>
+                <Grid Grid.Row="1"
+                      Margin="8,8,8,4">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="ENTRY"
+                               Style="{StaticResource WidgetLabelStyle}"/>
+                    <TextBlock x:Name="ResultTotalText"
+                               Text="0"
+                               FontFamily="Consolas"
+                               FontSize="17"
+                               Foreground="#E7EDF5"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="PROFIT"
+                               Style="{StaticResource WidgetLabelStyle}"/>
+                    <TextBlock x:Name="ResultWinText"
+                               Text="0"
+                               FontFamily="Consolas"
+                               FontSize="17"
+                               Foreground="#25C89A"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="LOSS"
+                               Style="{StaticResource WidgetLabelStyle}"/>
+                    <TextBlock x:Name="ResultLossText"
+                               Text="0"
+                               FontFamily="Consolas"
+                               FontSize="17"
+                               Foreground="#F45B69"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="3">
+                    <TextBlock Text="DRAW"
+                               Style="{StaticResource WidgetLabelStyle}"/>
+                    <TextBlock x:Name="ResultDrawText"
+                               Text="0"
+                               FontFamily="Consolas"
+                               FontSize="17"
+                               Foreground="#E7B65A"/>
+                  </StackPanel>
+                </Grid>
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            Margin="5,2">
+                  <Button Content="Buka Jurnal"
+                          Click="OpenJournal_Click"
+                          ToolTip="data/signal-journal.csv"/>
+                  <Button Content="Reset"
+                          Click="ResultReset_Click"
+                          ToolTip="Kosongkan statistik sesi ini"/>
+                </StackPanel>
+                <TextBlock Grid.Row="3"
+                           Margin="10,6"
+                           Foreground="#9FB3CC"
+                           FontSize="10"
+                           TextWrapping="Wrap"
+                           Text="Hasil dihitung dari close vs open candle entry. DRAW = candle flat, stake kembali. Statistik ini sesi berjalan saja; riwayat penuh ada di signal-journal.csv. Filter volatilitas + z-score: 50,61% holdout (batas bawah 95% 49,7%). Tetap UNPROVEN. Angka di bawah 100 entry belum berarti."/>
+              </Grid>
+            </TabItem>
+            <TabItem Header="NEXT">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="*"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="NEXT CANDLE · PREPARE"
+                           Style="{StaticResource WidgetTitleStyle}"
+                           Margin="8,8,8,2"/>
+                <TextBlock x:Name="NextSignalStatus"
+                           Grid.Row="1"
+                           Text="Memindai FAVORITES + simbol terpilih · Z-SCORE"
+                           Style="{StaticResource WidgetLabelStyle}"
+                           Margin="8,5"
+                           TextWrapping="Wrap"
+                           ToolTip="PREPARE muncul pada T-15s sebelum candle A tutup, untuk entry di candle B. Aturan sama seperti panel SIGNAL: z di atas 2, vol HI, cooldown 5 candle, maks 10 prepare per simbol per sesi. Klik baris untuk membuka simbol itu. Bukan jaminan hasil."/>
+                <ListBox x:Name="NextSignalList"
+                         Grid.Row="2"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="#DCE7F4"
+                         SelectionChanged="NextSignalList_SelectionChanged"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Grid Margin="8,7">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                          <TextBlock Text="{Binding Symbol}"
+                                     FontFamily="Consolas"
+                                     FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis"/>
+                          <TextBlock Text="{Binding Detail}"
+                                     Foreground="#7890AC"
+                                     FontSize="9"
+                                     TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                          <TextBlock Text="{Binding Direction}"
+                                     FontFamily="Consolas"
+                                     FontWeight="Bold"
+                                     Foreground="{Binding ForegroundHex}"
+                                     TextAlignment="Right"/>
+                          <TextBlock Text="{Binding Status}"
+                                     FontSize="9"
+                                     Foreground="{Binding ForegroundHex}"
+                                     TextAlignment="Right"/>
+                        </StackPanel>
+                      </Grid>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock Grid.Row="3"
+                           Margin="8,4"
+                           Foreground="#59728E"
+                           FontSize="8"
+                           TextWrapping="Wrap"
+                           Text="Klik baris untuk membuka simbol. Tambah market lewat bintang di Market Explorer agar ikut dipindai."/>
+              </Grid>
+            </TabItem>
+            <TabItem Header="NEWS">
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="NewsStatusText"
+                           Style="{StaticResource WidgetLabelStyle}"
+                           TextWrapping="Wrap"
+                           Margin="8,6"/>
+                <DataGrid x:Name="NewsGrid"
+                          Grid.Row="1"
+                          AutoGenerateColumns="True"
+                          CanUserAddRows="False"
+                          Margin="6,3"
+                          FontSize="10"/>
+              </Grid>
+            </TabItem>
+            <TabItem Header="TAPE">
+              <DataGrid x:Name="TapeGrid"
+                        AutoGenerateColumns="True"
+                        CanUserAddRows="False"
+                        Margin="6,5"
+                        FontSize="10"/>
+            </TabItem>
+            <TabItem Header="JURNAL">
+              <Grid Margin="12,7">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.ColumnSpan="2"
+                           Text="JURNAL TRADING-KU"
+                           Style="{StaticResource WidgetTitleStyle}"/>
+                <TextBlock Grid.Row="1"
+                           Text="TANGGAL"
+                           Style="{StaticResource WidgetLabelStyle}"/>
+                <DatePicker x:Name="TradingJournalDate"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            SelectedDateChanged="TradingJournalDate_Changed"
+                            Background="#000000"
+                            Foreground="#E7EDF5"
+                            BorderBrush="#202020"
+                            Height="28"/>
+                <TextBlock Grid.Row="2"
+                           Text="SALDO AWAL"
+                           Style="{StaticResource WidgetLabelStyle}"/>
+                <TextBox x:Name="TradingJournalBalance"
+                         Grid.Row="2"
+                         Grid.Column="1"
+                         TextChanged="TradingJournalField_Changed"
+                         LostFocus="TradingJournalField_LostFocus"
+                         HorizontalContentAlignment="Right"
+                         Margin="3,2"
+                         Padding="6,3"/>
+                <TextBlock Grid.Row="3"
+                           Text="TARGET PROFIT"
+                           Style="{StaticResource WidgetLabelStyle}"/>
+                <TextBox x:Name="TradingJournalTarget"
+                         Grid.Row="3"
+                         Grid.Column="1"
+                         TextChanged="TradingJournalField_Changed"
+                         LostFocus="TradingJournalField_LostFocus"
+                         HorizontalContentAlignment="Right"
+                         Margin="3,2"
+                         Padding="6,3"/>
+                <TextBlock Grid.Row="4"
+                           Text="STOP LOSS"
+                           Style="{StaticResource WidgetLabelStyle}"/>
+                <TextBox x:Name="TradingJournalStopLoss"
+                         Grid.Row="4"
+                         Grid.Column="1"
+                         TextChanged="TradingJournalField_Changed"
+                         LostFocus="TradingJournalField_LostFocus"
+                         HorizontalContentAlignment="Right"
+                         Margin="3,2"
+                         Padding="6,3"/>
+                <TextBlock x:Name="TradingJournalSaveStatus"
+                           Grid.Row="5"
+                           Grid.ColumnSpan="2"
+                           Text="Simpan otomatis ke Excel"
+                           Foreground="#9FB3CC"
+                           FontSize="9"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,3"/>
+                <Button Grid.Row="6"
+                        Grid.ColumnSpan="2"
+                        Content="BUKA FILE EXCEL"
+                        Click="OpenTradingJournal_Click"
+                        HorizontalAlignment="Stretch"
+                        Padding="6,4"/>
+              </Grid>
+            </TabItem>
+          </TabControl>
+          <GroupBox Grid.Row="1"
+                    Header="NOTIFIKASI">
+            <ListBox x:Name="ChartAlertList"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Foreground="#DCE7F4"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Margin="0,0,0,10"
+                              MaxWidth="260">
+                    <TextBlock Text="{Binding Time}"
+                               FontFamily="Consolas"
+                               FontSize="9"
+                               Foreground="#9FB3CC"
+                               Margin="0,0,0,2"/>
+                    <TextBlock Text="{Binding Message}"
+                               FontSize="10"
+                               TextWrapping="Wrap"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </GroupBox>
+          <GroupBox Grid.Row="2"
+                    Header="SL / SH LOCK">
+            <TextBlock Text="Marker terkunci saat candle selesai. Database lokal menjaga marker tetap ada setelah aplikasi dibuka ulang."
+                       TextWrapping="Wrap"
+                       Style="{StaticResource WidgetLabelStyle}"
+                       FontSize="10"
+                       LineHeight="17"
+                       Padding="12,9"/>
+          </GroupBox>
+        </Grid>
+      </Border>
+      <Border x:Name="BottomAlertBorder"
+              Grid.ColumnSpan="3"
+              VerticalAlignment="Bottom"
+              HorizontalAlignment="Center"
+              Margin="0,0,0,16"
+              Background="#123B33"
+              BorderBrush="#25C89A"
+              BorderThickness="1"
+              CornerRadius="6"
+              Padding="12,8"
+              Visibility="Collapsed"
+              Panel.ZIndex="20">
         <StackPanel Orientation="Horizontal">
-          <TextBlock x:Name="BottomAlertTime" FontFamily="Consolas" FontSize="11" Foreground="#72E3C3" Margin="0,0,10,0"/>
-          <TextBlock x:Name="BottomAlertMessage" Foreground="#DCE7F4" FontSize="12" TextWrapping="Wrap" MaxWidth="760"/>
+          <TextBlock x:Name="BottomAlertTime"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     Foreground="#72E3C3"
+                     Margin="0,0,10,0"/>
+          <TextBlock x:Name="BottomAlertMessage"
+                     Foreground="#DCE7F4"
+                     FontSize="12"
+                     TextWrapping="Wrap"
+                     MaxWidth="760"/>
         </StackPanel>
       </Border>
     </Grid>
+    <Border x:Name="StartupBlankOverlay"
+            Panel.ZIndex="1000"
+            Background="#FF050A10"
+            Visibility="Visible">
+      <Grid ClipToBounds="True">
+        <Rectangle Height="1"
+                   VerticalAlignment="Top"
+                   Fill="#1631D2F2"
+                   Opacity="0.55"/>
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <TextBlock Text="OPEN TERMINAL"
+                     HorizontalAlignment="Center"
+                     FontFamily="Consolas"
+                     FontSize="10"
+                     FontWeight="Bold"
+                     Foreground="#54738A"
+                     Margin="0,0,0,12"/>
+          <TextBlock x:Name="StartupLoadingText"
+                     Text="LOADING..."
+                     HorizontalAlignment="Center"
+                     FontFamily="Consolas"
+                     FontSize="30"
+                     FontWeight="Bold"
+                     Foreground="#31D2F2">
+            <TextBlock.Effect>
+              <DropShadowEffect Color="#31D2F2"
+                                BlurRadius="18"
+                                ShadowDepth="0"
+                                Opacity="0.75"/>
+            </TextBlock.Effect>
+          </TextBlock>
+          <Border Width="200"
+                  Height="2"
+                  Margin="0,16,0,0"
+                  Background="#182638">
+            <Border x:Name="StartupLoadingPulse"
+                    Width="42"
+                    HorizontalAlignment="Left"
+                    Background="#31D2F2">
+              <Border.Effect>
+                <DropShadowEffect Color="#31D2F2"
+                                  BlurRadius="8"
+                                  ShadowDepth="0"
+                                  Opacity="0.9"/>
+              </Border.Effect>
+            </Border>
+          </Border>
+          <TextBlock Text="INITIALIZING MARKET FEED"
+                     HorizontalAlignment="Center"
+                     FontFamily="Consolas"
+                     FontSize="9"
+                     Foreground="#587086"
+                     Margin="0,10,0,0"/>
+        </StackPanel>
+        <Rectangle Height="2"
+                   VerticalAlignment="Top"
+                   Fill="#3131D2F2"
+                   IsHitTestVisible="False">
+          <Rectangle.RenderTransform>
+            <TranslateTransform x:Name="StartupScanTransform"/>
+          </Rectangle.RenderTransform>
+        </Rectangle>
+      </Grid>
+    </Border>
   </DockPanel>
 </Window>

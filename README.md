@@ -155,6 +155,8 @@ npm run build -w server
 npm run build -w web
 npm test
 python -m py_compile server/pocket_feed.py
+# Clear dist first: leftover self-contained files (hostfxr.dll/coreclr.dll) make the exe fail with "You must install or update .NET"
+Remove-Item desktop\dist -Recurse -Force -ErrorAction SilentlyContinue
 dotnet publish desktop\OpenTerminal.Desktop.csproj -c Release -r win-x64 --self-contained false -o desktop\dist
 ```
 

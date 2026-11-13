@@ -1,0 +1,18 @@
+signal_id,market,direction,score,signal_time,entry_time,entry_price,expiry_time,expiry_price,outcome,conditions
+F60-#AAPL_otc-1794396720,#AAPL_otc,PUT,80,1794396720,1794396780,343.59,1794396840,343.539,WIN
+F60-#AAPL_otc-1794397020,#AAPL_otc,PUT,75,1794397020,1794397080,343.503,1794397140,343.365,WIN
+F60-#AAPL_otc-1794397440,#AAPL_otc,PUT,95,1794397440,1794397500,343.34,1794397560,343.234,WIN,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola Doji · RSI 47 · MACD - · Vol 62%;skor 95;call 0;put 95
+F60-#AAPL_otc-1794397740,#AAPL_otc,PUT,100,1794397740,1794397800,343.488,1794397860,343.431,WIN,CHoCH ↓ · BOS ↓ · FVG SELL retest · S/R di tengah · pola Marubozu naik · Double Top · RSI 53 · MACD - · Vol 100%;skor 100;call 0;put 100
+F60-#AAPL_otc-1794398280,#AAPL_otc,PUT,85,1794398280,1794398340,343.349,1794398400,343.323,WIN,CHoCH ↓ · BOS ↓ · FVG BUY retest · S/R pantul R · pola — · Double Bottom@level · RSI 50 · MACD + · Vol 90%;skor 85;call 60;put 85
+F60-#AAPL_otc-1794398640,#AAPL_otc,PUT,100,1794398640,1794398700,343.43,1794398760,343.348,WIN,CHoCH ↓ · BOS ↓ · FVG BUY · S/R pantul R · pola Bearish Engulfing@level · Double Top@level · RSI 51 · MACD + · Vol 12%;skor 100;call 15;put 100
+F60-#AAPL_otc-1794398940,#AAPL_otc,PUT,90,1794398940,1794399000,343.508,1794399060,343.489,WIN,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola — · Double Top · RSI 50 · MACD + · Vol 62%;skor 90;call 0;put 90
+F60-AEDCNY_otc-1794497760,AEDCNY_otc,PUT,90,1794497760,1794497820,1.54899,1794497880,1.54875,WIN,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola — · RSI 46 · MACD - · Vol 32%;skor 90;call 0;put 90
+F60-AEDCNY_otc-1794498060,AEDCNY_otc,PUT,100,1794498060,1794498120,1.54765,1794498180,1.54783,WIN,CHoCH ↓ · BOS ↓ · FVG SELL · S/R pantul R · pola Bearish Engulfing@level · Double Top@level · RSI 44 · MACD - · Vol 93%;skor 100;call 0;put 100
+F60-AEDCNY_otc-1794498360,AEDCNY_otc,PUT,90,1794498360,1794498420,1.54807,1794498480,1.54592,WIN,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola Hammer · Double Bottom · RSI 45 · MACD - · Vol 80%;skor 90;call 0;put 90
+F60-AEDCNY_otc-1794498660,AEDCNY_otc,PUT,85,1794498660,1794498720,1.54329,1794498780,1.54427,LOSS,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola Doji · Double Top · RSI 31 · MACD - · Vol 12%;skor 85;call 0;put 85
+F60-AEDCNY_otc-1794498960,AEDCNY_otc,PUT,100,1794498960,1794499020,1.54276,1794499080,1.54187,WIN,CHoCH ↓ · BOS ↓ · FVG SELL · S/R pantul R · pola Marubozu turun@level · Double Top@level · RSI 34 · MACD - · Vol 80%;skor 100;call 0;put 100
+F60-AEDCNY_otc-1794499260,AEDCNY_otc,PUT,90,1794499260,1794499320,1.53995,1794499380,1.54002,LOSS,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola — · Double Top · RSI 28 · MACD - · Vol 78%;skor 90;call 0;put 90
+F60-AEDCNY_otc-1794499560,AEDCNY_otc,PUT,85,1794499560,1794499620,1.53701,1794499680,1.53746,LOSS,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola Marubozu turun · RSI 21 · MACD - · Vol 100%;skor 85;call 0;put 85
+F60-AEDCNY_otc-1794499920,AEDCNY_otc,PUT,100,1794499920,1794499980,1.53769,1794500040,1.53855,LOSS,CHoCH ↓ · BOS ↓ · FVG SELL · S/R pantul R · pola Bearish Engulfing@level · Double Top@level · RSI 30 · MACD + · Vol 93%;skor 100;call 0;put 100
+F60-AEDCNY_otc-1794500460,AEDCNY_otc,PUT,85,1794500460,1794500520,1.53915,1794500580,1.53752,WIN,CHoCH ↓ · BOS ↓ · FVG BUY · S/R pantul R · pola — · Double Bottom@level · RSI 48 · MACD + · Vol 25%;skor 85;call 25;put 85
+F60-AEDCNY_otc-1794500760,AEDCNY_otc,PUT,90,1794500760,1794500820,1.53753,1794500880,1.53812,LOSS,CHoCH ↓ · BOS ↓ · FVG SELL · S/R di tengah · pola — · RSI 41 · MACD + · Vol 35%;skor 90;call 0;put 90

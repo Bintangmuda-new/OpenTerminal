@@ -9,13 +9,15 @@ type Snapshot = {
   mode: string;
   status: string;
   receivedAt: number;
-  markets: Array<{ symbol: string; name: string; group: string }>;
+  markets: Array<{ symbol: string; name: string; group: string; payout?: number; active?: boolean }>;
   liveSymbols: string[];
   ticks: Record<string, { price: number; time: number }>;
   candles: Record<string, Array<Record<string, number>>>;
   trends: Record<string, { direction: string }>;
+  balance: number | null;
+  currency: string;
 };
-type Pending = { resolve: (snapshot: Snapshot) => void; reject: (error: Error) => void };
+type Pending = { resolve: (value: any) => void; reject: (error: Error) => void };
 
 const root = join(dataDir, "..");
 const ssidFile = join(dataDir, ".pocket-ssid");
@@ -40,6 +42,19 @@ function rejectPending(error: Error): void {
   pending.clear();
 }
 
+function workerRequest<T>(payload: Record<string, unknown>, timeoutMs = 20_000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    if (!worker) return reject(new Error("Pocket worker unavailable"));
+    const id = ++sequence;
+    pending.set(id, { resolve, reject });
+    worker.stdin.write(`${JSON.stringify({ ...payload, id })}\n`);
+    setTimeout(() => {
+      const request = pending.get(id);
+      if (request) { pending.delete(id); request.reject(new Error("Pocket worker timeout")); }
+    }, timeoutMs).unref();
+  });
+}
+
 function startWorker(): Promise<void> {
   if (worker && !worker.killed) return Promise.resolve();
   if (starting) return starting;
@@ -54,15 +69,15 @@ function startWorker(): Promise<void> {
     worker = child;
     createInterface({ input: child.stdout }).on("line", (line) => {
       try {
-        const message = JSON.parse(line) as { type?: string; id?: number; ok?: boolean; snapshot?: Snapshot; error?: string };
+        const message = JSON.parse(line) as { type?: string; id?: number; ok?: boolean; snapshot?: Snapshot; result?: Record<string, unknown>; error?: string };
         if (message.type === "ready") return resolve();
         if (message.type === "error") return reject(new Error(message.error ?? "Pocket worker error"));
         if (typeof message.id !== "number") return;
         const request = pending.get(message.id);
         if (!request) return;
         pending.delete(message.id);
-        if (message.ok && message.snapshot) request.resolve(message.snapshot);
-        else request.reject(new Error("Pocket worker returned no snapshot"));
+        if (message.ok) request.resolve(message.snapshot ?? message.result ?? message);
+        else request.reject(new Error(message.error ?? "Pocket worker request failed"));
       } catch {
         reject(new Error("Pocket worker returned malformed data"));
       }
@@ -75,15 +90,11 @@ function startWorker(): Promise<void> {
   return starting;
 }
 
-async function snapshot(symbol: string): Promise<Snapshot> {
+async function snapshot(symbol: string, symbols?: string[]): Promise<Snapshot> {
   await startWorker();
-  return new Promise((resolve, reject) => {
-    if (!worker) return reject(new Error("Pocket worker unavailable"));
-    const id = ++sequence;
-    pending.set(id, { resolve, reject });
-    worker.stdin.write(`${JSON.stringify({ type: "snapshot", id, symbol })}\n`);
-    setTimeout(() => { const request = pending.get(id); if (request) { pending.delete(id); request.reject(new Error("Pocket worker timeout")); } }, 20_000).unref();
-  });
+  // NEXT widget watchlist: optional extra symbols for M1 history (bounded
+  // server-side in pocket_feed.py). Omitted = old single-symbol response.
+  return workerRequest<Snapshot>(symbols && symbols.length ? { type: "snapshot", symbol, symbols } : { type: "snapshot", symbol });
 }
 
 function captureBrowserSsid(): Promise<string> {
@@ -176,8 +187,32 @@ router.post("/browser-login", async (_request, response) => {
 });
 
 router.get("/snapshot", async (request, response) => {
-  try { response.json(await snapshot(String(request.query.symbol ?? "#AAPL_otc"))); }
+  try {
+    const symbols = typeof request.query.symbols === "string" && request.query.symbols.length
+      ? request.query.symbols.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 10)
+      : undefined;
+    response.json(await snapshot(String(request.query.symbol ?? "#AAPL_otc"), symbols));
+  }
   catch (error) { response.status(503).json({ status: "disconnected", error: error instanceof Error ? error.message : "Pocket feed unavailable" }); }
+});
+
+router.post("/order", async (request, response) => {
+  const asset = String(request.body?.asset ?? "").trim();
+  const direction = String(request.body?.direction ?? "").toLowerCase();
+  const amount = Number(request.body?.amount);
+  const expiration = Number(request.body?.expiration);
+  if (!asset || !["call", "put"].includes(direction) || !Number.isFinite(amount) || amount < 1 || amount > 50_000
+      || !Number.isInteger(expiration) || expiration !== 60) {
+    response.status(400).json({ ok: false, error: "Invalid DEMO order: asset, call/put, amount 1..50000, expiration 60s required" });
+    return;
+  }
+  try {
+    await startWorker();
+    const result = await workerRequest<Record<string, unknown>>({ type: "buy", asset, direction, amount, expiration });
+    response.json({ ok: true, demo: true, ...result });
+  } catch (error) {
+    response.status(503).json({ ok: false, demo: true, error: error instanceof Error ? error.message : "DEMO order failed" });
+  }
 });
 
 router.all("*", (_request, response) => {

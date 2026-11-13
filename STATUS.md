@@ -1,6 +1,6 @@
 # Status Proyek
 
-Diperbarui: 2026-09-25
+Diperbarui: 2026-10-05
 
 ## Siap Digunakan
 
@@ -49,7 +49,15 @@ Diperbarui: 2026-09-25
  dotnet build desktop\OpenTerminal.Desktop.csproj -c Release --no-restore
 ```
 
-Hasil: sukses, `0` warning, `0` error.
+Hasil (2026-10-05): sukses, `0` warning, `0` error. API `DEMO` `status=live`.
+
+### Insiden 2026-10-05: crash saat start
+
+- Gejala: `OpenTerminal.exe` langsung keluar (Event 1023 `.NET Runtime`: *You must install or update .NET*), watchdog me-restart berulang.
+- Root cause: `desktop\dist` tercampur build framework-dependent baru dan sisa publish self-contained lama (`hostfxr.dll`, `coreclr.dll`), sehingga host mencari runtime di `dist\`.
+- Fix: `dist` diganti seluruhnya dengan output Release bersih; `dist` lama diarsip ke `_scratch\dist_broken_20261005`.
+- Aturan: selalu kosongkan `desktop\dist` sebelum copy/publish (lihat `DESKTOP.md`). Cek cepat: `Cek-Runtime-Openterminal.cmd`.
+- Pembersihan: 22 folder build eksperimen `desktop\dist-*`/`desktop\run-*` (±429 MB) dan `MainWindow.xaml(.cs).bak` diarsip ke `_scratch\old-builds-20261005`. Satu-satunya build aktif: `desktop\dist`.
 
 ## Struktur
 

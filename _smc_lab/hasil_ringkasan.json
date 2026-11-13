@@ -1,0 +1,119 @@
+{
+  "data": {
+    "symbols": 142,
+    "holdout_from_day": 6,
+    "lockbox_from_day": 7
+  },
+  "sel": [
+    {
+      "cell": "ote_only",
+      "segment": "train",
+      "n": 28449,
+      "win": 14267,
+      "wr": 50.149,
+      "lb95": 49.568
+    },
+    {
+      "cell": "ote_only",
+      "segment": "hold",
+      "n": 19174,
+      "win": 9721,
+      "wr": 50.699,
+      "lb95": 49.991
+    },
+    {
+      "cell": "ote_only",
+      "segment": "lock",
+      "n": 32057,
+      "win": 15976,
+      "wr": 49.836,
+      "lb95": 49.289
+    },
+    {
+      "cell": "ote_choch",
+      "segment": "train",
+      "n": 5200,
+      "win": 2839,
+      "wr": 54.596,
+      "lb95": 53.24
+    },
+    {
+      "cell": "ote_choch",
+      "segment": "hold",
+      "n": 3659,
+      "win": 2020,
+      "wr": 55.206,
+      "lb95": 53.59
+    },
+    {
+      "cell": "ote_choch",
+      "segment": "lock",
+      "n": 5890,
+      "win": 3275,
+      "wr": 55.603,
+      "lb95": 54.331
+    },
+    {
+      "cell": "choch_only",
+      "segment": "train",
+      "n": 83753,
+      "win": 43098,
+      "wr": 51.458,
+      "lb95": 51.12
+    },
+    {
+      "cell": "choch_only",
+      "segment": "hold",
+      "n": 58111,
+      "win": 29915,
+      "wr": 51.479,
+      "lb95": 51.073
+    },
+    {
+      "cell": "choch_only",
+      "segment": "lock",
+      "n": 96038,
+      "win": 49348,
+      "wr": 51.384,
+      "lb95": 51.068
+    },
+    {
+      "cell": "neither",
+      "segment": "train",
+      "n": 137360,
+      "win": 67416,
+      "wr": 49.08,
+      "lb95": 48.815
+    },
+    {
+      "cell": "neither",
+      "segment": "hold",
+      "n": 90377,
+      "win": 44195,
+      "wr": 48.901,
+      "lb95": 48.575
+    },
+    {
+      "cell": "neither",
+      "segment": "lock",
+      "n": 148155,
+      "win": 72801,
+      "wr": 49.138,
+      "lb95": 48.884
+    }
+  ],
+  "ote_choch_call": {
+    "n_holdout": 3659,
+    "wr_holdout": 55.206,
+    "lb95": 53.59,
+    "simbol_n20": 123,
+    "simbol_di_atas_50": 98,
+    "simbol_di_atas_impas_92": 90,
+    "ev_payout_92_pct": 6.0
+  },
+  "catatan": [
+    "Edge hanya muncul di CALL; PUT+OTE tidak bekerja.",
+    "Data riset 13-20 Sep 2026, jurnal live 4-12 Nov 2026 (tidak tumpang tindih).",
+    "CHoCH tanpa OTE ~50%; OTE tanpa CHoCH ~50%; keduanya 55.45%."
+  ]
+}

@@ -5,8 +5,9 @@ Executable distribusi: `desktop\dist\OpenTerminal.exe`.
 ## Perilaku
 
 - Native WPF. Tidak memakai WebView atau browser UI.
+- Satu instance desktop; tombol tutup menyembunyikan jendela ke system tray, sedangkan menu `Keluar` menghentikan aplikasi dan API yang dikelolanya.
 - Menggunakan API lokal `127.0.0.1:4000`.
-- Jika API belum aktif, desktop memulai `server\dist\index.js` lewat `node.exe` tanpa jendela `cmd.exe`.
+- Jika API belum aktif, desktop memulai `server\dist\index.js` lewat `node.exe` tanpa jendela `cmd.exe` dan memantau API agar dapat dimulai kembali jika berhenti.
 - Market Explorer memakai satu scrollbar native di tepi kanan panel.
 - Kolom `Price` dan status koneksi rata kanan serta lebarnya terkunci.
 - Broker hanya DEMO, data-only.
@@ -26,7 +27,9 @@ Executable distribusi: `desktop\dist\OpenTerminal.exe`.
 ```powershell
 # PowerShell
  dotnet build desktop\OpenTerminal.Desktop.csproj -c Release --no-restore
-Copy-Item desktop\bin\Release\net8.0-windows\OpenTerminal.* desktop\dist\ -Force
+# Ganti dist seluruhnya; jangan campur dengan sisa publish self-contained (hostfxr.dll/coreclr.dll)
+Remove-Item desktop\dist -Recurse -Force
+Copy-Item desktop\bin\Release\net8.0-windows desktop\dist -Recurse
 ```
 
 Jalankan `desktop\dist\OpenTerminal.exe` atau `Jalankan-App.cmd`.
